@@ -29,7 +29,7 @@ import { Verification } from "./schema";
 
 // API Fetcher
 const fetchVerifications = async (): Promise<{ data: Verification[] }> => {
-  const response = await api.get("/admin/purchase-verifications?status=PENDING");
+  const response = await api.get("/admin/purchase-verifications?status=PENDING&sortBy=submittedAt&sortType=asc");
   return response.data;
 };
 

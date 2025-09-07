@@ -1,4 +1,4 @@
-import { ClipboardList, LayoutDashboard, type LucideIcon } from "lucide-react";
+import { ClipboardList, LayoutDashboard, Users, type LucideIcon } from "lucide-react";
 
 export interface NavMainItem {
   title: string;
@@ -18,14 +18,19 @@ export const sidebarItems: NavGroup[] = [
     id: 1,
     items: [
       {
-        title: "Dashboard",
-        url: "/dashboard",
+        title: "Overview",
+        url: "/dashboard/overview",
         icon: LayoutDashboard,
       },
       {
         title: "Purchase Verifications",
         url: "/dashboard/verifications",
         icon: ClipboardList,
+      },
+      {
+        title: "User Management",
+        url: "/dashboard/users",
+        icon: Users,
       },
     ],
   },
