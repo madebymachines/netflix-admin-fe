@@ -1,19 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { authMiddleware } from "./middleware/auth-middleware";
+export function authMiddleware(req: NextRequest): NextResponse | null {
+  const { pathname } = req.nextUrl;
+  const accessToken = req.cookies.get("accessToken")?.value;
 
-export function middleware(req: NextRequest) {
-  // authMiddleware
-  const response = authMiddleware(req);
-  if (response) {
-    return response;
+  const isLoginPage = pathname.startsWith("/auth/login");
+  const isDashboardPage = pathname.startsWith("/dashboard");
+
+  // Jika mencoba mengakses halaman dashboard tanpa token, redirect ke halaman login.
+  if (isDashboardPage && !accessToken) {
+    return NextResponse.redirect(new URL("/auth/login", req.url));
   }
 
-  return NextResponse.next();
-}
+  // Jika mencoba mengakses halaman login saat sudah memiliki token, redirect ke dashboard.
+  if (isLoginPage && accessToken) {
+    return NextResponse.redirect(new URL("/dashboard", req.url));
+  }
 
-export const config = {
-  // Lindungi semua rute di bawah /dashboard
-  // Izinkan akses ke /auth/login, tapi redirect jika sudah login
-  matcher: ["/dashboard/:path*", "/auth/login"],
-};
+  // Jika tidak ada kondisi di atas yang terpenuhi, jangan lakukan apa-apa (lanjutkan ke request berikutnya).
+  return null;
+}

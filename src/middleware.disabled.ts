@@ -5,10 +5,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { authMiddleware } from "./middleware/auth-middleware";
 
 export function middleware(req: NextRequest) {
-  // authMiddleware
-  const response = authMiddleware(req);
-  if (response) {
-    return response;
+  // Panggil logika authMiddleware
+  const authResponse = authMiddleware(req);
+  if (authResponse) {
+    return authResponse;
   }
 
   return NextResponse.next();

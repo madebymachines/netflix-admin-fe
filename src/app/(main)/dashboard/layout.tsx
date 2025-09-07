@@ -1,6 +1,7 @@
 "use client";
 
 import { ReactNode, useEffect } from "react";
+
 import { usePathname } from "next/navigation";
 
 import { AppSidebar } from "@/app/(main)/dashboard/_components/sidebar/app-sidebar";
@@ -10,6 +11,7 @@ import { SidebarInset, SidebarProvider, SidebarTrigger, useSidebar } from "@/com
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/auth/authStore";
 import { usePreferencesStore } from "@/stores/preferences/preferences-provider";
+import { type SidebarVariant } from "@/types/preferences/layout";
 
 import { LayoutControls } from "./_components/sidebar/layout-controls";
 import { SearchDialog } from "./_components/sidebar/search-dialog";
@@ -26,9 +28,10 @@ function DashboardLayoutInner({ children }: { children: ReactNode }) {
     }
   }, [pathname, isMobile, setOpenMobile]);
 
-  const sidebarVariant = usePreferencesStore((s) => "inset");
-  const sidebarCollapsible = usePreferencesStore((s) => "icon");
-  const contentLayout = usePreferencesStore((s) => "centered");
+  // FIX: Explicitly type the constants to match component prop types
+  const sidebarVariant: SidebarVariant = "inset";
+  const sidebarCollapsible = "icon";
+  const contentLayout = "centered";
 
   const layoutPreferences = {
     contentLayout,
