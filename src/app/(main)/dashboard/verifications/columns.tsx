@@ -19,7 +19,7 @@ import { Verification } from "./schema";
 type ColumnsProps = {
   onApprove: (id: number) => void;
   onReject: (id: number) => void;
-  onViewImage: (url: string) => void; // <-- Prop baru untuk membuka dialog
+  onViewImage: (url: string) => void;
 };
 
 export const getColumns = ({ onApprove, onReject, onViewImage }: ColumnsProps): ColumnDef<Verification>[] => [
@@ -44,6 +44,11 @@ export const getColumns = ({ onApprove, onReject, onViewImage }: ColumnsProps): 
         View Image
       </Button>
     ),
+  },
+  {
+    accessorKey: "type",
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Type" />,
+    cell: ({ row }) => <Badge variant="secondary">{row.original.type}</Badge>,
   },
   {
     accessorKey: "status",

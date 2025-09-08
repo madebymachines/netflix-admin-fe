@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Users, UserPlus, CheckCircle, XCircle } from "lucide-react";
+import { Users, UserPlus, CheckCircle, XCircle, Clock } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -15,6 +15,7 @@ const fetchStats = async (): Promise<{
     newUsers: number;
     approvedVerifications: number;
     rejectedVerifications: number;
+    pendingVerifications: number;
   };
 }> => {
   const response = await api.get("/admin/stats");
@@ -59,9 +60,15 @@ export default function OverviewPage() {
     <div className="flex flex-col gap-6">
       <h1 className="text-2xl font-semibold">Dashboard Overview</h1>
       {isError && <p className="text-destructive">Failed to load dashboard statistics.</p>}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         <StatCard title="Total Users" value={stats?.totalUsers} icon={Users} isLoading={isLoading} />
-        <StatCard title="New Users (Last 7 Days)" value={stats?.newUsers} icon={UserPlus} isLoading={isLoading} />
+        <StatCard title="New Users (7d)" value={stats?.newUsers} icon={UserPlus} isLoading={isLoading} />
+        <StatCard
+          title="Pending Verifications"
+          value={stats?.pendingVerifications}
+          icon={Clock}
+          isLoading={isLoading}
+        />
         <StatCard
           title="Approved Verifications"
           value={stats?.approvedVerifications}

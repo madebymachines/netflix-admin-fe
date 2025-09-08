@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useDebounce } from "@uidotdev/usehooks";
 
 import { DataTable } from "@/components/data-table/data-table";
 import { DataTablePagination } from "@/components/data-table/data-table-pagination";
@@ -20,6 +21,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDataTableInstance } from "@/hooks/use-data-table-instance";
 import api from "@/lib/axios";
@@ -27,9 +29,18 @@ import api from "@/lib/axios";
 import { getColumns } from "./columns";
 import { Verification } from "./schema";
 
-// API Fetcher
-const fetchVerifications = async (): Promise<{ data: Verification[] }> => {
-  const response = await api.get("/admin/purchase-verifications?status=PENDING&sortBy=submittedAt&sortType=asc");
+// API Fetcher with filters
+const fetchVerifications = async (
+  status: string,
+  type: string,
+  searchTerm: string,
+): Promise<{ data: Verification[]; pagination: any }> => {
+  const params = new URLSearchParams();
+  if (status && status !== "ALL") params.append("status", status);
+  if (type && type !== "ALL") params.append("type", type);
+  if (searchTerm) params.append("nameOrEmail", searchTerm);
+
+  const response = await api.get(`/admin/purchase-verifications?${params.toString()}`);
   return response.data;
 };
 
@@ -41,9 +52,14 @@ export default function VerificationsPage() {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
 
+  const [statusFilter, setStatusFilter] = useState("PENDING");
+  const [typeFilter, setTypeFilter] = useState("ALL");
+  const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
+
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["verifications"],
-    queryFn: fetchVerifications,
+    queryKey: ["verifications", statusFilter, typeFilter, debouncedSearchTerm],
+    queryFn: () => fetchVerifications(statusFilter, typeFilter, debouncedSearchTerm),
   });
 
   const tableData = data?.data ?? [];
@@ -109,6 +125,36 @@ export default function VerificationsPage() {
           <CardDescription>Review and approve or reject user purchase submissions.</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
+          <div className="flex items-center gap-4">
+            <Input
+              placeholder="Search by user name or email..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="max-w-sm"
+            />
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filter by Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">All Statuses</SelectItem>
+                <SelectItem value="PENDING">Pending</SelectItem>
+                <SelectItem value="APPROVED">Approved</SelectItem>
+                <SelectItem value="REJECTED">Rejected</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={typeFilter} onValueChange={setTypeFilter}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filter by Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">All Types</SelectItem>
+                <SelectItem value="MEMBER_GYM">Member Gym</SelectItem>
+                <SelectItem value="RECEIPT">Receipt</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
           {isLoading ? (
             <div className="space-y-2">
               <Skeleton className="h-12 w-full" />
@@ -128,7 +174,6 @@ export default function VerificationsPage() {
         </CardContent>
       </Card>
 
-      {/* Rejection Dialog */}
       <AlertDialog open={rejectionModalOpen} onOpenChange={setRejectionModalOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -151,7 +196,6 @@ export default function VerificationsPage() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Image Viewer Dialog */}
       <Dialog open={imageViewOpen} onOpenChange={setImageViewOpen}>
         <DialogContent className="max-w-4xl">
           <div className="relative h-[80vh] w-full">
