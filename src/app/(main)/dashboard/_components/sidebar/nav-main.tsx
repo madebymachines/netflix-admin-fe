@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 
@@ -19,8 +21,9 @@ export function NavMain({ items }: NavMainProps) {
   const searchParams = useSearchParams();
 
   const isItemActive = (url: string) => {
-    // Rekonstruksi path lengkap saat ini, termasuk query parameters
-    const currentFullPath = `${path}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+    // Rekonstruksi path lengkap saat ini dari browser
+    const currentQueryString = searchParams.toString();
+    const currentFullPath = `${path}${currentQueryString ? `?${currentQueryString}` : ""}`;
 
     // Lakukan perbandingan URL lengkap secara persis
     return currentFullPath === url;

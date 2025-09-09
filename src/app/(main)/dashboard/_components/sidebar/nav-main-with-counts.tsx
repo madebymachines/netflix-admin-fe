@@ -12,6 +12,9 @@ const fetchStats = async (): Promise<{
     pendingVerifications: number;
     approvedVerifications: number;
     rejectedVerifications: number;
+    pendingSubmissions: number;
+    approvedSubmissions: number;
+    rejectedSubmissions: number;
   };
 }> => {
   const response = await api.get("/admin/stats");
@@ -20,6 +23,7 @@ const fetchStats = async (): Promise<{
 
 // Helper to format large numbers into K format (e.g., 5500 -> 5.5K)
 const formatK = (num: number) => {
+  if (num === 0) return "0";
   return num > 999 ? `${(num / 1000).toFixed(1)}K` : num.toString();
 };
 
@@ -33,6 +37,7 @@ export function NavMainWithCounts() {
   if (isLoading) {
     return (
       <div className="flex flex-col gap-2 p-2">
+        <SidebarMenuSkeleton showIcon />
         <SidebarMenuSkeleton showIcon />
         <SidebarMenuSkeleton showIcon />
         <SidebarMenuSkeleton showIcon />

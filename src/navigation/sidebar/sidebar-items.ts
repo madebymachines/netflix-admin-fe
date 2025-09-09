@@ -1,10 +1,28 @@
-import { LayoutGrid, Users, UserX, FileClock, FileCheck, FileX, Trophy, type LucideIcon } from "lucide-react";
+import {
+  LayoutGrid,
+  Users,
+  UserX,
+  FileClock,
+  FileCheck,
+  FileX,
+  Trophy,
+  type LucideIcon,
+  BookCheck,
+  BookX,
+  BookLock,
+} from "lucide-react";
 
 export interface NavMainItem {
   title: string;
   url: string;
   icon?: LucideIcon;
-  key?: "pendingVerifications" | "approvedVerifications" | "rejectedVerifications";
+  key?:
+    | "pendingVerifications"
+    | "approvedVerifications"
+    | "rejectedVerifications"
+    | "pendingSubmissions"
+    | "approvedSubmissions"
+    | "rejectedSubmissions";
 }
 
 export interface NavGroup {
@@ -66,6 +84,30 @@ export const sidebarItems: NavGroup[] = [
   },
   {
     id: 4,
+    label: "SUBMISSIONS",
+    items: [
+      {
+        title: "Pending",
+        url: "/dashboard/submissions?status=PENDING",
+        icon: BookLock,
+        key: "pendingSubmissions",
+      },
+      {
+        title: "Approved",
+        url: "/dashboard/submissions?status=APPROVED",
+        icon: BookCheck,
+        key: "approvedSubmissions",
+      },
+      {
+        title: "Rejected",
+        url: "/dashboard/submissions?status=REJECTED",
+        icon: BookX,
+        key: "rejectedSubmissions",
+      },
+    ],
+  },
+  {
+    id: 5,
     label: "POINTS",
     items: [
       {
