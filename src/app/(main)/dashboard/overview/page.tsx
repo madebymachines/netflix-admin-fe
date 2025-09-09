@@ -1,9 +1,10 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Users, UserPlus, CheckCircle, XCircle, Clock } from "lucide-react";
+import { Users, BarChart3 } from "lucide-react";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import api from "@/lib/axios";
 import { UserGrowthChart } from "./user-growth-chart";
@@ -16,35 +17,25 @@ const fetchStats = async (): Promise<{
     approvedVerifications: number;
     rejectedVerifications: number;
     pendingVerifications: number;
+    blockedUsers: number;
   };
 }> => {
   const response = await api.get("/admin/stats");
   return response.data;
 };
 
-const StatCard = ({
-  title,
-  value,
-  icon: Icon,
-  isLoading,
-}: {
-  title: string;
-  value?: number;
-  icon: React.ElementType;
-  isLoading: boolean;
-}) => (
-  <Card>
-    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-      <CardTitle className="text-sm font-medium">{title}</CardTitle>
-      <Icon className="text-muted-foreground h-4 w-4" />
+// Helper to format large numbers into K format (e.g., 10500 -> 10.5K)
+const formatK = (num: number) => {
+  return num > 999 ? `${(num / 1000).toFixed(1)}K` : num;
+};
+
+// Simple stat card for smaller metrics
+const SmallStatCard = ({ title, value, isLoading }: { title: string; value: number; isLoading: boolean }) => (
+  <Card className="flex-1">
+    <CardHeader className="p-4">
+      <CardDescription>{title}</CardDescription>
+      {isLoading ? <Skeleton className="h-7 w-1/2" /> : <CardTitle className="text-2xl">{formatK(value)}</CardTitle>}
     </CardHeader>
-    <CardContent>
-      {isLoading ? (
-        <Skeleton className="h-8 w-1/2" />
-      ) : (
-        <div className="text-2xl font-bold">{value?.toLocaleString() ?? 0}</div>
-      )}
-    </CardContent>
   </Card>
 );
 
@@ -56,32 +47,77 @@ export default function OverviewPage() {
 
   const stats = data?.data;
 
+  // Calculations for Progress Reviewed card
+  const reviewedCount = (stats?.approvedVerifications ?? 0) + (stats?.rejectedVerifications ?? 0);
+  const totalSubmissions = reviewedCount + (stats?.pendingVerifications ?? 0);
+  const progressPercentage = totalSubmissions > 0 ? Math.round((reviewedCount / totalSubmissions) * 100) : 0;
+
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-2xl font-semibold">Dashboard Overview</h1>
       {isError && <p className="text-destructive">Failed to load dashboard statistics.</p>}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-        <StatCard title="Total Users" value={stats?.totalUsers} icon={Users} isLoading={isLoading} />
-        <StatCard title="New Users (7d)" value={stats?.newUsers} icon={UserPlus} isLoading={isLoading} />
-        <StatCard
-          title="Pending Verifications"
-          value={stats?.pendingVerifications}
-          icon={Clock}
-          isLoading={isLoading}
-        />
-        <StatCard
-          title="Approved Verifications"
-          value={stats?.approvedVerifications}
-          icon={CheckCircle}
-          isLoading={isLoading}
-        />
-        <StatCard
-          title="Rejected Verifications"
-          value={stats?.rejectedVerifications}
-          icon={XCircle}
-          isLoading={isLoading}
-        />
+
+      {/* Top section with stats cards */}
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {/* Participants Card */}
+        <Card className="lg:col-span-1">
+          <CardHeader>
+            <CardDescription>Participants</CardDescription>
+          </CardHeader>
+          <CardContent className="flex items-center gap-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-500 text-white">
+              <BarChart3 className="h-6 w-6" />
+            </div>
+            {isLoading ? (
+              <Skeleton className="h-10 w-24" />
+            ) : (
+              <p className="text-4xl font-bold">{formatK(stats?.totalUsers ?? 0)}</p>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Progress Reviewed Card */}
+        <Card className="lg:col-span-1">
+          <CardHeader>
+            <div className="flex items-start justify-between">
+              <CardDescription>Progress Reviewed</CardDescription>
+              {isLoading ? (
+                <Skeleton className="h-5 w-10" />
+              ) : (
+                <p className="text-muted-foreground text-sm font-semibold">{progressPercentage}%</p>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {isLoading ? (
+              <Skeleton className="h-10 w-24" />
+            ) : (
+              <p className="text-4xl font-bold">{formatK(reviewedCount)}</p>
+            )}
+            <Progress value={progressPercentage} className="h-2" />
+          </CardContent>
+        </Card>
+
+        {/* Stacked small cards */}
+        <div className="flex flex-col gap-4">
+          <SmallStatCard title="Pending Verifications" value={stats?.pendingVerifications ?? 0} isLoading={isLoading} />
+          <SmallStatCard
+            title="Rejected Verifications"
+            value={stats?.rejectedVerifications ?? 0}
+            isLoading={isLoading}
+          />
+        </div>
+
+        <div className="flex flex-col gap-4">
+          <SmallStatCard
+            title="Approved Verifications"
+            value={stats?.approvedVerifications ?? 0}
+            isLoading={isLoading}
+          />
+          <SmallStatCard title="Blocked Participants" value={stats?.blockedUsers ?? 0} isLoading={isLoading} />
+        </div>
       </div>
+
+      {/* Bottom section with user growth chart */}
       <div>
         <UserGrowthChart />
       </div>

@@ -2,9 +2,10 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useDebounce } from "@uidotdev/usehooks";
+import { useSearchParams } from "next/navigation";
 
 import { DataTable } from "@/components/data-table/data-table";
 import { DataTablePagination } from "@/components/data-table/data-table-pagination";
@@ -46,16 +47,23 @@ const fetchVerifications = async (
 
 export default function VerificationsPage() {
   const queryClient = useQueryClient();
+  const searchParams = useSearchParams();
+
   const [rejectionModalOpen, setRejectionModalOpen] = useState(false);
   const [imageViewOpen, setImageViewOpen] = useState(false);
   const [selectedImageUrl, setSelectedImageUrl] = useState("");
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
 
-  const [statusFilter, setStatusFilter] = useState("PENDING");
+  const [statusFilter, setStatusFilter] = useState(searchParams.get("status") || "PENDING");
   const [typeFilter, setTypeFilter] = useState("ALL");
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
+
+  // Efek untuk menyinkronkan state dengan URL
+  useEffect(() => {
+    setStatusFilter(searchParams.get("status") || "PENDING");
+  }, [searchParams]);
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["verifications", statusFilter, typeFilter, debouncedSearchTerm],
@@ -122,7 +130,7 @@ export default function VerificationsPage() {
       <Card>
         <CardHeader>
           <CardTitle>Purchase Verifications</CardTitle>
-          <CardDescription>Review and approve or reject user purchase submissions.</CardDescription>
+          <CardDescription>Review and manage user purchase verifications.</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           <div className="flex items-center gap-4">

@@ -12,9 +12,8 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { APP_CONFIG } from "@/config/app-config";
-import { sidebarItems } from "@/navigation/sidebar/sidebar-items";
 import { useAuthStore } from "@/stores/auth/authStore";
-import { NavMain } from "./nav-main";
+import { NavMainWithCounts } from "./nav-main-with-counts";
 import { NavUser } from "./nav-user";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -26,7 +25,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild className="data-[slot=sidebar-menu-button]:!p-1.5">
-              <a href="/dashboard">
+              <a href="/dashboard/overview">
                 <Command />
                 <span className="text-base font-semibold">{APP_CONFIG.name}</span>
               </a>
@@ -35,7 +34,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={sidebarItems} />
+        <NavMainWithCounts />
       </SidebarContent>
       <SidebarFooter>
         {admin && (

@@ -1,10 +1,10 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useDebounce } from "@uidotdev/usehooks";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import { DataTable } from "@/components/data-table/data-table";
 import { DataTablePagination } from "@/components/data-table/data-table-pagination";
@@ -41,13 +41,34 @@ const fetchUsers = async (searchTerm: string, banStatus: string): Promise<{ data
 export default function UsersPage() {
   const queryClient = useQueryClient();
   const router = useRouter();
+  const searchParams = useSearchParams();
+
   const [banModalOpen, setBanModalOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
   const [banReason, setBanReason] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [banStatusFilter, setBanStatusFilter] = useState("all");
+
+  const [banStatusFilter, setBanStatusFilter] = useState(() => {
+    const initialFilter = searchParams.get("filter");
+    if (initialFilter === "blocked") return "true";
+    if (initialFilter === "active") return "false";
+    return "all";
+  });
 
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
+
+  // Efek untuk menyinkronkan state dengan URL
+  useEffect(() => {
+    const newFilter = searchParams.get("filter");
+    if (newFilter === "blocked") {
+      setBanStatusFilter("true");
+    } else if (newFilter === "active") {
+      setBanStatusFilter("false");
+    } else if (banStatusFilter !== "all") {
+      // Jika URL tidak memiliki filter, reset ke 'all'
+      setBanStatusFilter("all");
+    }
+  }, [searchParams]);
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["users", debouncedSearchTerm, banStatusFilter],
@@ -106,7 +127,7 @@ export default function UsersPage() {
     setBanReason("");
   };
 
-  const columns = useMemo(() => getColumns({ onBan, onUnban, onViewDetails }), [onBan, onUnban, onViewDetails]);
+  const columns = useMemo(() => getColumns({ onBan, onUnban, onViewDetails }), []);
   const table = useDataTableInstance({ data: tableData, columns });
 
   return (
