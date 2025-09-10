@@ -37,7 +37,7 @@ const fetchVerifications = async (
   searchTerm: string,
 ): Promise<{ data: Verification[]; pagination: any }> => {
   const params = new URLSearchParams();
-  if (status && status !== "ALL") params.append("status", status);
+  if (status) params.append("status", status);
   if (type && type !== "ALL") params.append("type", type);
   if (searchTerm) params.append("nameOrEmail", searchTerm);
 
@@ -60,7 +60,6 @@ export default function VerificationsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
-  // Efek untuk menyinkronkan state dengan URL
   useEffect(() => {
     setStatusFilter(searchParams.get("status") || "PENDING");
   }, [searchParams]);
@@ -77,23 +76,21 @@ export default function VerificationsPage() {
     onSuccess: () => {
       toast.success("Verification approved successfully.");
       queryClient.invalidateQueries({ queryKey: ["verifications"] });
+      queryClient.invalidateQueries({ queryKey: ["sidebarStats"] });
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Failed to approve.");
-    },
+    onError: (error: any) => toast.error(error.response?.data?.message || "Failed to approve."),
   });
 
   const rejectMutation = useMutation({
-    mutationFn: ({ id, reason }: { id: number; reason: string }) =>
+    mutationFn: ({ id, reason }: { id: number; reason?: string }) =>
       api.patch(`/admin/purchase-verifications/${id}/reject`, { rejectionReason: reason }),
     onSuccess: () => {
       toast.success("Verification rejected successfully.");
       queryClient.invalidateQueries({ queryKey: ["verifications"] });
+      queryClient.invalidateQueries({ queryKey: ["sidebarStats"] });
       closeRejectModal();
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Failed to reject.");
-    },
+    onError: (error: any) => toast.error(error.response?.data?.message || "Failed to reject."),
   });
 
   function onApprove(id: number) {
@@ -140,17 +137,6 @@ export default function VerificationsPage() {
               onChange={(e) => setSearchTerm(e.target.value)}
               className="max-w-sm"
             />
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filter by Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">All Statuses</SelectItem>
-                <SelectItem value="PENDING">Pending</SelectItem>
-                <SelectItem value="APPROVED">Approved</SelectItem>
-                <SelectItem value="REJECTED">Rejected</SelectItem>
-              </SelectContent>
-            </Select>
             <Select value={typeFilter} onValueChange={setTypeFilter}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Filter by Type" />
@@ -165,7 +151,6 @@ export default function VerificationsPage() {
 
           {isLoading ? (
             <div className="space-y-2">
-              <Skeleton className="h-12 w-full" />
               <Skeleton className="h-12 w-full" />
               <Skeleton className="h-12 w-full" />
             </div>
@@ -187,7 +172,7 @@ export default function VerificationsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Reject Verification?</AlertDialogTitle>
             <AlertDialogDescription>
-              Please provide a reason for rejection. This will be sent to the user. This action cannot be undone.
+              Provide a reason for rejection (optional). This will be sent to the user.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <Input

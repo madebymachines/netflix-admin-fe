@@ -23,7 +23,6 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDataTableInstance } from "@/hooks/use-data-table-instance";
 import api from "@/lib/axios";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getColumns } from "./columns";
 import { User } from "./schema";
 
@@ -51,23 +50,14 @@ export default function UsersPage() {
   const [banStatusFilter, setBanStatusFilter] = useState(() => {
     const initialFilter = searchParams.get("filter");
     if (initialFilter === "blocked") return "true";
-    if (initialFilter === "active") return "false";
-    return "all";
+    return "false"; // Default ke Active Participants
   });
 
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
-  // Efek untuk menyinkronkan state dengan URL
   useEffect(() => {
     const newFilter = searchParams.get("filter");
-    if (newFilter === "blocked") {
-      setBanStatusFilter("true");
-    } else if (newFilter === "active") {
-      setBanStatusFilter("false");
-    } else if (banStatusFilter !== "all") {
-      // Jika URL tidak memiliki filter, reset ke 'all'
-      setBanStatusFilter("all");
-    }
+    setBanStatusFilter(newFilter === "blocked" ? "true" : "false");
   }, [searchParams]);
 
   const { data, isLoading, isError } = useQuery({
@@ -78,15 +68,14 @@ export default function UsersPage() {
   const tableData = data?.data ?? [];
 
   const banMutation = useMutation({
-    mutationFn: ({ id, reason }: { id: number; reason: string }) => api.patch(`/admin/users/${id}/ban`, { reason }),
+    mutationFn: ({ id, reason }: { id: number; reason?: string }) => api.patch(`/admin/users/${id}/ban`, { reason }),
     onSuccess: () => {
       toast.success("User banned successfully.");
       queryClient.invalidateQueries({ queryKey: ["users"] });
+      queryClient.invalidateQueries({ queryKey: ["sidebarStats"] });
       closeBanModal();
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Failed to ban user.");
-    },
+    onError: (error: any) => toast.error(error.response?.data?.message || "Failed to ban user."),
   });
 
   const unbanMutation = useMutation({
@@ -94,10 +83,9 @@ export default function UsersPage() {
     onSuccess: () => {
       toast.success("User unbanned successfully.");
       queryClient.invalidateQueries({ queryKey: ["users"] });
+      queryClient.invalidateQueries({ queryKey: ["sidebarStats"] });
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Failed to unban user.");
-    },
+    onError: (error: any) => toast.error(error.response?.data?.message || "Failed to unban user."),
   });
 
   const onBan = (id: number) => {
@@ -114,10 +102,8 @@ export default function UsersPage() {
   };
 
   const handleBanSubmit = () => {
-    if (selectedUserId && banReason) {
+    if (selectedUserId) {
       banMutation.mutate({ id: selectedUserId, reason: banReason });
-    } else {
-      toast.error("Ban reason is required.");
     }
   };
 
@@ -135,7 +121,9 @@ export default function UsersPage() {
       <Card>
         <CardHeader>
           <CardTitle>User Management</CardTitle>
-          <CardDescription>View, manage, and ban users.</CardDescription>
+          <CardDescription>
+            {banStatusFilter === "true" ? "Manage blocked participants" : "Manage active participants"}
+          </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           <div className="flex items-center gap-4">
@@ -145,22 +133,10 @@ export default function UsersPage() {
               onChange={(e) => setSearchTerm(e.target.value)}
               className="max-w-sm"
             />
-            <Select value={banStatusFilter} onValueChange={setBanStatusFilter}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="false">Active</SelectItem>
-                <SelectItem value="true">Banned</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
 
           {isLoading ? (
             <div className="space-y-2">
-              <Skeleton className="h-12 w-full" />
-              <Skeleton className="h-12 w-full" />
               <Skeleton className="h-12 w-full" />
               <Skeleton className="h-12 w-full" />
             </div>
@@ -182,7 +158,7 @@ export default function UsersPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Ban User?</AlertDialogTitle>
             <AlertDialogDescription>
-              Please provide a reason for banning this user. This action can be undone later.
+              Provide a reason for banning this user (optional). This action can be undone later.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <Input

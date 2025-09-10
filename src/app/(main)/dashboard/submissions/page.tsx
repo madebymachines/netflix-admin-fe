@@ -22,7 +22,6 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDataTableInstance } from "@/hooks/use-data-table-instance";
 import api from "@/lib/axios";
@@ -35,7 +34,7 @@ const fetchSubmissions = async (
   searchTerm: string,
 ): Promise<{ data: Submission[]; pagination: any }> => {
   const params = new URLSearchParams();
-  if (status && status !== "ALL") params.append("status", status);
+  if (status) params.append("status", status);
   if (searchTerm) params.append("nameOrEmail", searchTerm);
 
   const response = await api.get(`/admin/activity-submissions?${params.toString()}`);
@@ -78,7 +77,7 @@ export default function ActivitySubmissionsPage() {
   });
 
   const rejectMutation = useMutation({
-    mutationFn: ({ id, reason }: { id: number; reason: string }) =>
+    mutationFn: ({ id, reason }: { id: number; reason?: string }) =>
       api.patch(`/admin/activity-submissions/${id}/reject`, { rejectionReason: reason }),
     onSuccess: () => {
       toast.success("Submission rejected successfully.");
@@ -104,12 +103,9 @@ export default function ActivitySubmissionsPage() {
   }
 
   function handleRejectSubmit() {
-    if (!selectedId) return;
-    if (!rejectionReason) {
-      toast.error("Rejection reason is required.");
-      return;
+    if (selectedId) {
+      rejectMutation.mutate({ id: selectedId, reason: rejectionReason });
     }
-    rejectMutation.mutate({ id: selectedId, reason: rejectionReason });
   }
 
   function closeRejectModal() {
@@ -136,17 +132,6 @@ export default function ActivitySubmissionsPage() {
               onChange={(e) => setSearchTerm(e.target.value)}
               className="max-w-sm"
             />
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filter by Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">All Statuses</SelectItem>
-                <SelectItem value="PENDING">Pending</SelectItem>
-                <SelectItem value="APPROVED">Approved</SelectItem>
-                <SelectItem value="REJECTED">Rejected</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
 
           {isLoading ? (
@@ -171,7 +156,7 @@ export default function ActivitySubmissionsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Reject Submission?</AlertDialogTitle>
             <AlertDialogDescription>
-              Please provide a reason for rejection. This action will deduct the earned points from the user.
+              Provide a reason for rejection (optional). This action will deduct the earned points from the user.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <Input
