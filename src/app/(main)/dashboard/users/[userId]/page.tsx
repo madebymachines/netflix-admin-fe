@@ -11,7 +11,7 @@ import { ArrowLeft, ShieldBan, ShieldCheck } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { getInitials } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -92,24 +92,42 @@ export default function UserDetailPage() {
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <Card className="flex h-fit flex-col lg:col-span-1">
-            <CardContent className="flex flex-col items-center gap-2 p-6 text-center">
-              <Avatar className="h-24 w-24">
-                <AvatarImage src={user.profilePictureUrl || undefined} alt={user.name} />
-                <AvatarFallback className="text-3xl">{getInitials(user.name)}</AvatarFallback>
-              </Avatar>
-              <h2 className="text-lg font-semibold">{user.name}</h2>
-              <p className="text-muted-foreground text-sm">@{user.username}</p>
-              <p className="text-muted-foreground text-sm">{user.email}</p>
-              {user.isBanned ? (
-                <Badge variant="destructive" className="mt-2">
-                  <ShieldBan className="mr-1 h-3 w-3" /> Banned
-                </Badge>
-              ) : (
-                <Badge variant="secondary">
-                  <ShieldCheck className="mr-1 h-3 w-3" /> Active
-                </Badge>
-              )}
-              {user.isBanned && <p className="mt-1 text-xs text-red-500">Reason: {user.banReason}</p>}
+            <CardContent className="flex flex-col gap-4 p-6">
+              <div className="flex flex-col items-center gap-2 text-center">
+                <Avatar className="h-24 w-24">
+                  <AvatarImage src={user.profilePictureUrl || undefined} alt={user.name} />
+                  <AvatarFallback className="text-3xl">{getInitials(user.name)}</AvatarFallback>
+                </Avatar>
+                <h2 className="text-lg font-semibold">{user.name}</h2>
+                <p className="text-muted-foreground text-sm">@{user.username}</p>
+                {user.isBanned ? (
+                  <Badge variant="destructive">
+                    <ShieldBan className="mr-1 h-3 w-3" /> Banned
+                  </Badge>
+                ) : (
+                  <Badge variant="secondary">
+                    <ShieldCheck className="mr-1 h-3 w-3" /> Active
+                  </Badge>
+                )}
+                {user.isBanned && <p className="mt-1 text-xs text-red-500">Reason: {user.banReason}</p>}
+              </div>
+
+              <Separator />
+
+              <div className="space-y-2 text-left text-sm">
+                <p>
+                  <strong className="inline-block w-20">Email:</strong> {user.email}
+                </p>
+                <p>
+                  <strong className="inline-block w-20">Phone:</strong> {user.phoneNumber || "N/A"}
+                </p>
+                <p>
+                  <strong className="inline-block w-20">Country:</strong> {user.country || "N/A"}
+                </p>
+                <p>
+                  <strong className="inline-block w-20">Gender:</strong> {user.gender || "N/A"}
+                </p>
+              </div>
             </CardContent>
             <Separator />
             <CardContent className="grid grid-cols-2 gap-2 p-4">

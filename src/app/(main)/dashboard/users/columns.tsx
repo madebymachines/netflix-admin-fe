@@ -2,7 +2,7 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
-import { MoreHorizontal, Ban, CheckCircle, Eye } from "lucide-react";
+import { MoreHorizontal, Ban, CheckCircle, Eye, VenetianMask, PersonStanding } from "lucide-react";
 
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 import { Badge } from "@/components/ui/badge";
@@ -39,15 +39,26 @@ export const getColumns = ({ onBan, onUnban, onViewDetails }: ColumnsProps): Col
     header: ({ column }) => <DataTableColumnHeader column={column} title="Email" />,
   },
   {
+    accessorKey: "gender",
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Gender" />,
+    cell: ({ row }) => {
+      if (!row.original.gender) return "N/A";
+      return (
+        <Badge variant="outline" className="capitalize">
+          {row.original.gender === "MALE" ? (
+            <PersonStanding className="mr-1 h-3 w-3" />
+          ) : (
+            <VenetianMask className="mr-1 h-3 w-3" />
+          )}
+          {row.original.gender.toLowerCase()}
+        </Badge>
+      );
+    },
+  },
+  {
     accessorKey: "country",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Country" />,
     cell: ({ row }) => row.original.country || "N/A",
-  },
-  {
-    accessorKey: "isBanned",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Status" />,
-    cell: ({ row }) =>
-      row.original.isBanned ? <Badge variant="destructive">Banned</Badge> : <Badge variant="secondary">Active</Badge>,
   },
   {
     accessorKey: "purchaseStatus",

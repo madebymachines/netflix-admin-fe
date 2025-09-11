@@ -5,6 +5,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getInitials } from "@/lib/utils";
 import { LeaderboardEntry } from "./schema";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
+import { Badge } from "@/components/ui/badge";
+import { PersonStanding, VenetianMask } from "lucide-react";
 
 type Timespan = "alltime" | "weekly" | "streak";
 
@@ -27,6 +29,23 @@ export const getColumns = (timespan: Timespan): ColumnDef<LeaderboardEntry>[] =>
         <span className="font-medium">{row.original.username}</span>
       </div>
     ),
+  },
+  {
+    accessorKey: "gender",
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Gender" />,
+    cell: ({ row }) => {
+      if (!row.original.gender) return "N/A";
+      return (
+        <Badge variant="outline" className="capitalize">
+          {row.original.gender === "MALE" ? (
+            <PersonStanding className="mr-1 h-3 w-3" />
+          ) : (
+            <VenetianMask className="mr-1 h-3 w-3" />
+          )}
+          {row.original.gender.toLowerCase()}
+        </Badge>
+      );
+    },
   },
   {
     accessorKey: "country",
