@@ -22,6 +22,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDataTableInstance } from "@/hooks/use-data-table-instance";
 import api from "@/lib/axios";
@@ -32,10 +33,12 @@ import { Submission } from "./schema";
 const fetchSubmissions = async (
   status: string,
   searchTerm: string,
+  eventType: string,
 ): Promise<{ data: Submission[]; pagination: any }> => {
   const params = new URLSearchParams();
-  if (status) params.append("status", status);
+  if (status) params.append("status", status); // Status tetap dikirim ke API
   if (searchTerm) params.append("nameOrEmail", searchTerm);
+  if (eventType && eventType !== "ALL") params.append("eventType", eventType);
 
   const response = await api.get(`/admin/activity-submissions?${params.toString()}`);
   return response.data;
@@ -52,6 +55,7 @@ export default function ActivitySubmissionsPage() {
   const [rejectionReason, setRejectionReason] = useState("");
 
   const [statusFilter, setStatusFilter] = useState(searchParams.get("status") || "PENDING");
+  const [eventTypeFilter, setEventTypeFilter] = useState("ALL");
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
@@ -60,8 +64,8 @@ export default function ActivitySubmissionsPage() {
   }, [searchParams]);
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["submissions", statusFilter, debouncedSearchTerm],
-    queryFn: () => fetchSubmissions(statusFilter, debouncedSearchTerm),
+    queryKey: ["submissions", statusFilter, debouncedSearchTerm, eventTypeFilter],
+    queryFn: () => fetchSubmissions(statusFilter, debouncedSearchTerm, eventTypeFilter),
   });
 
   const tableData = data?.data ?? [];
@@ -132,6 +136,16 @@ export default function ActivitySubmissionsPage() {
               onChange={(e) => setSearchTerm(e.target.value)}
               className="max-w-sm"
             />
+            <Select value={eventTypeFilter} onValueChange={setEventTypeFilter}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filter by Event Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">All Event Types</SelectItem>
+                <SelectItem value="INDIVIDUAL">Individual</SelectItem>
+                <SelectItem value="GROUP">Group</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           {isLoading ? (
