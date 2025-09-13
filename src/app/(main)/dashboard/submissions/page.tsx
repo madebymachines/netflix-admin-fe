@@ -29,6 +29,7 @@ import api from "@/lib/axios";
 
 import { getColumns } from "./columns";
 import { Submission } from "./schema";
+import { ExportFeature } from "@/components/ExportFeature";
 
 const fetchSubmissions = async (
   status: string,
@@ -124,9 +125,12 @@ export default function ActivitySubmissionsPage() {
   return (
     <>
       <Card>
-        <CardHeader>
-          <CardTitle>Activity Submissions</CardTitle>
-          <CardDescription>Review, approve, or reject user activity submissions.</CardDescription>
+        <CardHeader className="flex-row items-center justify-between">
+          <div>
+            <CardTitle>Activity Submissions</CardTitle>
+            <CardDescription>Review, approve, or reject user activity submissions.</CardDescription>
+          </div>
+          <ExportFeature exportType="SUBMISSIONS" />
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           <div className="flex items-center gap-4">

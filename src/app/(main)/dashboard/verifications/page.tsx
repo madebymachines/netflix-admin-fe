@@ -29,6 +29,7 @@ import api from "@/lib/axios";
 
 import { getColumns } from "./columns";
 import { Verification } from "./schema";
+import { ExportFeature } from "@/components/ExportFeature";
 
 // API Fetcher with filters
 const fetchVerifications = async (
@@ -125,9 +126,12 @@ export default function VerificationsPage() {
   return (
     <>
       <Card>
-        <CardHeader>
-          <CardTitle>Purchase Verifications</CardTitle>
-          <CardDescription>Review and manage user purchase verifications.</CardDescription>
+        <CardHeader className="flex-row items-center justify-between">
+          <div>
+            <CardTitle>Purchase Verifications</CardTitle>
+            <CardDescription>Review and manage user purchase verifications.</CardDescription>
+          </div>
+          <ExportFeature exportType="VERIFICATIONS" />
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           <div className="flex items-center gap-4">
