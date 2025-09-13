@@ -64,21 +64,21 @@ export default function LeaderboardPage() {
 
   return (
     <Card>
-      <CardHeader className="flex-row items-center justify-between">
-        <div>
-          <CardTitle>Leaderboard</CardTitle>
-          <CardDescription>See who is at the top of the ranks.</CardDescription>
-        </div>
-        <ExportFeature exportType="LEADERBOARD" />
+      <CardHeader>
+        <CardTitle>Leaderboard</CardTitle>
+        <CardDescription>See who is at the top of the ranks.</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
-        <Tabs value={timespan} onValueChange={(value) => setTimespan(value as Timespan)}>
-          <TabsList>
-            <TabsTrigger value="alltime">All-Time</TabsTrigger>
-            <TabsTrigger value="weekly">Weekly</TabsTrigger>
-            <TabsTrigger value="streak">Top Streak</TabsTrigger>
-          </TabsList>
-        </Tabs>
+        <div className="flex items-center justify-between">
+          <Tabs value={timespan} onValueChange={(value) => setTimespan(value as Timespan)}>
+            <TabsList>
+              <TabsTrigger value="alltime">All-Time</TabsTrigger>
+              <TabsTrigger value="weekly">Weekly</TabsTrigger>
+              <TabsTrigger value="streak">Top Streak</TabsTrigger>
+            </TabsList>
+          </Tabs>
+          <ExportFeature exportType="LEADERBOARD" />
+        </div>
 
         {isError ? (
           <p className="text-destructive">Failed to load leaderboard data.</p>

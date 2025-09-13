@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useDebounce } from "@uidotdev/usehooks";
 import { useRouter, useSearchParams } from "next/navigation";
+import { keepPreviousData } from "@tanstack/react-query";
 
 import { DataTable } from "@/components/data-table/data-table";
 import { DataTablePagination } from "@/components/data-table/data-table-pagination";
@@ -27,12 +28,18 @@ import { getColumns } from "./columns";
 import { User } from "./schema";
 import { ExportFeature } from "@/components/ExportFeature";
 
-// API Fetcher with filters
-const fetchUsers = async (searchTerm: string, banStatus: string): Promise<{ data: User[]; pagination: any }> => {
+// API Fetcher with filters and pagination
+const fetchUsers = async (
+  searchTerm: string,
+  banStatus: string,
+  page: number,
+  limit: number,
+): Promise<{ data: User[]; pagination: any }> => {
   const params = new URLSearchParams();
   if (searchTerm) params.append("name", searchTerm);
   if (banStatus && banStatus !== "all") params.append("isBanned", banStatus);
-  params.append("limit", "100");
+  params.append("page", String(page + 1));
+  params.append("limit", String(limit));
 
   const response = await api.get(`/admin/users?${params.toString()}`);
   return response.data;
@@ -43,6 +50,10 @@ export default function UsersPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 10,
+  });
   const [banModalOpen, setBanModalOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
   const [banReason, setBanReason] = useState("");
@@ -51,7 +62,7 @@ export default function UsersPage() {
   const [banStatusFilter, setBanStatusFilter] = useState(() => {
     const initialFilter = searchParams.get("filter");
     if (initialFilter === "blocked") return "true";
-    return "false"; // Default ke Active Participants
+    return "false";
   });
 
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
@@ -59,14 +70,17 @@ export default function UsersPage() {
   useEffect(() => {
     const newFilter = searchParams.get("filter");
     setBanStatusFilter(newFilter === "blocked" ? "true" : "false");
+    setPagination((prev) => ({ ...prev, pageIndex: 0 })); // Reset ke halaman pertama saat filter berubah
   }, [searchParams]);
 
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ["users", debouncedSearchTerm, banStatusFilter],
-    queryFn: () => fetchUsers(debouncedSearchTerm, banStatusFilter),
+  const { data, isLoading, isError, isPlaceholderData } = useQuery({
+    queryKey: ["users", debouncedSearchTerm, banStatusFilter, pagination],
+    queryFn: () => fetchUsers(debouncedSearchTerm, banStatusFilter, pagination.pageIndex, pagination.pageSize),
+    placeholderData: keepPreviousData,
   });
 
   const tableData = data?.data ?? [];
+  const pageCount = data?.pagination.totalPages ?? 0;
 
   const banMutation = useMutation({
     mutationFn: ({ id, reason }: { id: number; reason?: string }) => api.patch(`/admin/users/${id}/ban`, { reason }),
@@ -115,7 +129,15 @@ export default function UsersPage() {
   };
 
   const columns = useMemo(() => getColumns({ onBan, onUnban, onViewDetails }), [onBan, onUnban, onViewDetails]);
-  const table = useDataTableInstance({ data: tableData, columns });
+
+  const table = useDataTableInstance({
+    data: tableData,
+    columns,
+    pageCount,
+    manualPagination: true,
+    onPaginationChange: setPagination,
+    state: { pagination },
+  });
 
   return (
     <>
@@ -137,17 +159,19 @@ export default function UsersPage() {
             <ExportFeature exportType="PARTICIPANTS" />
           </div>
 
-          {isLoading ? (
-            <div className="space-y-2">
-              <Skeleton className="h-12 w-full" />
-              <Skeleton className="h-12 w-full" />
-            </div>
-          ) : isError ? (
+          {isError ? (
             <p className="text-destructive">Failed to load user data.</p>
           ) : (
             <>
               <div className="overflow-hidden rounded-md border">
-                <DataTable table={table} columns={columns} />
+                {isLoading && isPlaceholderData ? (
+                  <div className="space-y-2 p-4">
+                    <Skeleton className="h-12 w-full" />
+                    <Skeleton className="h-12 w-full" />
+                  </div>
+                ) : (
+                  <DataTable table={table} columns={columns} />
+                )}
               </div>
               <DataTablePagination table={table} />
             </>

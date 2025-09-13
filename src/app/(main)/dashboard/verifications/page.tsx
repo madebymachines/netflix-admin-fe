@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useDebounce } from "@uidotdev/usehooks";
 import { useSearchParams } from "next/navigation";
+import { keepPreviousData } from "@tanstack/react-query";
 
 import { DataTable } from "@/components/data-table/data-table";
 import { DataTablePagination } from "@/components/data-table/data-table-pagination";
@@ -31,16 +32,20 @@ import { getColumns } from "./columns";
 import { Verification } from "./schema";
 import { ExportFeature } from "@/components/ExportFeature";
 
-// API Fetcher with filters
+// API Fetcher with filters and pagination
 const fetchVerifications = async (
   status: string,
   type: string,
   searchTerm: string,
+  page: number,
+  limit: number,
 ): Promise<{ data: Verification[]; pagination: any }> => {
   const params = new URLSearchParams();
   if (status) params.append("status", status);
   if (type && type !== "ALL") params.append("type", type);
   if (searchTerm) params.append("nameOrEmail", searchTerm);
+  params.append("page", String(page + 1));
+  params.append("limit", String(limit));
 
   const response = await api.get(`/admin/purchase-verifications?${params.toString()}`);
   return response.data;
@@ -50,6 +55,10 @@ export default function VerificationsPage() {
   const queryClient = useQueryClient();
   const searchParams = useSearchParams();
 
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 10,
+  });
   const [rejectionModalOpen, setRejectionModalOpen] = useState(false);
   const [imageViewOpen, setImageViewOpen] = useState(false);
   const [selectedImageUrl, setSelectedImageUrl] = useState("");
@@ -63,14 +72,18 @@ export default function VerificationsPage() {
 
   useEffect(() => {
     setStatusFilter(searchParams.get("status") || "PENDING");
+    setPagination((prev) => ({ ...prev, pageIndex: 0 }));
   }, [searchParams]);
 
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ["verifications", statusFilter, typeFilter, debouncedSearchTerm],
-    queryFn: () => fetchVerifications(statusFilter, typeFilter, debouncedSearchTerm),
+  const { data, isLoading, isError, isPlaceholderData } = useQuery({
+    queryKey: ["verifications", statusFilter, typeFilter, debouncedSearchTerm, pagination],
+    queryFn: () =>
+      fetchVerifications(statusFilter, typeFilter, debouncedSearchTerm, pagination.pageIndex, pagination.pageSize),
+    placeholderData: keepPreviousData,
   });
 
   const tableData = data?.data ?? [];
+  const pageCount = data?.pagination.totalPages ?? 0;
 
   const approveMutation = useMutation({
     mutationFn: (id: number) => api.patch(`/admin/purchase-verifications/${id}/approve`),
@@ -121,7 +134,14 @@ export default function VerificationsPage() {
   }
 
   const columns = getColumns({ onApprove, onReject, onViewImage });
-  const table = useDataTableInstance({ data: tableData, columns });
+  const table = useDataTableInstance({
+    data: tableData,
+    columns,
+    pageCount,
+    manualPagination: true,
+    onPaginationChange: setPagination,
+    state: { pagination },
+  });
 
   return (
     <>
@@ -153,17 +173,19 @@ export default function VerificationsPage() {
             <ExportFeature exportType="VERIFICATIONS" />
           </div>
 
-          {isLoading ? (
-            <div className="space-y-2">
-              <Skeleton className="h-12 w-full" />
-              <Skeleton className="h-12 w-full" />
-            </div>
-          ) : isError ? (
+          {isError ? (
             <p className="text-destructive">Failed to load data.</p>
           ) : (
             <>
               <div className="overflow-hidden rounded-md border">
-                <DataTable table={table} columns={columns} />
+                {isLoading && isPlaceholderData ? (
+                  <div className="space-y-2 p-4">
+                    <Skeleton className="h-12 w-full" />
+                    <Skeleton className="h-12 w-full" />
+                  </div>
+                ) : (
+                  <DataTable table={table} columns={columns} />
+                )}
               </div>
               <DataTablePagination table={table} />
             </>
