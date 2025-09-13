@@ -114,29 +114,27 @@ export default function UsersPage() {
     setBanReason("");
   };
 
-  const columns = useMemo(() => getColumns({ onBan, onUnban, onViewDetails }), []);
+  const columns = useMemo(() => getColumns({ onBan, onUnban, onViewDetails }), [onBan, onUnban, onViewDetails]);
   const table = useDataTableInstance({ data: tableData, columns });
 
   return (
     <>
       <Card>
-        <CardHeader className="flex-row items-center justify-between">
-          <div>
-            <CardTitle>User Management</CardTitle>
-            <CardDescription>
-              {banStatusFilter === "true" ? "Manage blocked participants" : "Manage active participants"}
-            </CardDescription>
-          </div>
-          <ExportFeature exportType="PARTICIPANTS" />
+        <CardHeader>
+          <CardTitle>User Management</CardTitle>
+          <CardDescription>
+            {banStatusFilter === "true" ? "Manage blocked participants" : "Manage active participants"}
+          </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center justify-between gap-4">
             <Input
               placeholder="Search by name..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="max-w-sm"
             />
+            <ExportFeature exportType="PARTICIPANTS" />
           </div>
 
           {isLoading ? (

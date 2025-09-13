@@ -125,31 +125,31 @@ export default function ActivitySubmissionsPage() {
   return (
     <>
       <Card>
-        <CardHeader className="flex-row items-center justify-between">
-          <div>
-            <CardTitle>Activity Submissions</CardTitle>
-            <CardDescription>Review, approve, or reject user activity submissions.</CardDescription>
-          </div>
-          <ExportFeature exportType="SUBMISSIONS" />
+        <CardHeader>
+          <CardTitle>Activity Submissions</CardTitle>
+          <CardDescription>Review, approve, or reject user activity submissions.</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
-          <div className="flex items-center gap-4">
-            <Input
-              placeholder="Search by user name or email..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="max-w-sm"
-            />
-            <Select value={eventTypeFilter} onValueChange={setEventTypeFilter}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filter by Event Type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">All Event Types</SelectItem>
-                <SelectItem value="INDIVIDUAL">Individual</SelectItem>
-                <SelectItem value="GROUP">Group</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <Input
+                placeholder="Search by user name or email..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="max-w-sm"
+              />
+              <Select value={eventTypeFilter} onValueChange={setEventTypeFilter}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Filter by Event Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">All Event Types</SelectItem>
+                  <SelectItem value="INDIVIDUAL">Individual</SelectItem>
+                  <SelectItem value="GROUP">Group</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <ExportFeature exportType="SUBMISSIONS" />
           </div>
 
           {isLoading ? (

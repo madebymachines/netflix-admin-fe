@@ -23,6 +23,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { requestExport } from "@/services/api";
 import { DateRangePicker } from "./ui/date-range-picker";
+import { countries } from "@/data/countries";
 
 type ExportType = "PARTICIPANTS" | "LEADERBOARD" | "VERIFICATIONS" | "SUBMISSIONS";
 
@@ -30,80 +31,89 @@ interface ExportFeatureProps {
   exportType: ExportType;
 }
 
-// Skema validasi untuk setiap tipe ekspor
-const participantsSchema = z.object({
-  isBanned: z.string().default("false"),
-});
-const leaderboardSchema = z.object({
-  timespan: z.string().default("alltime"),
-});
-const verificationSchema = z.object({
-  status: z.string().default("ALL"),
-  dateRange: z.object({ from: z.date(), to: z.date() }).optional(),
-});
-const submissionSchema = z.object({
-  status: z.string().default("ALL"),
-  dateRange: z.object({ from: z.date(), to: z.date() }).optional(),
-});
-
-const formSchema = z.object({
+const baseFilters = {
   email: z.string().email({ message: "Invalid email address." }).optional().or(z.literal("")),
-  filters: z.union([participantsSchema, leaderboardSchema, verificationSchema, submissionSchema]),
+};
+
+const participantsFilters = z.object({
+  isBanned: z.string().optional(),
+  country: z.string().optional(),
+  purchaseStatus: z.string().optional(),
+  dateRange: z.custom<DateRange>().optional(),
 });
 
-type FormData = z.infer<typeof formSchema>;
+const leaderboardFilters = z.object({
+  timespan: z.string().optional(),
+  country: z.string().optional(),
+  limit: z.coerce.number().int().positive().optional(),
+});
+
+const verificationFilters = z.object({
+  status: z.string().optional(),
+  verificationType: z.string().optional(),
+  dateRange: z.custom<DateRange>().optional(),
+});
+
+const submissionFilters = z.object({
+  status: z.string().optional(),
+  eventType: z.string().optional(),
+  country: z.string().optional(),
+  dateRange: z.custom<DateRange>().optional(),
+});
 
 export function ExportFeature({ exportType }: ExportFeatureProps) {
   const [open, setOpen] = useState(false);
 
-  const getTitle = () => {
-    switch (exportType) {
-      case "PARTICIPANTS":
-        return "Participants";
-      case "LEADERBOARD":
-        return "Leaderboard";
-      case "VERIFICATIONS":
-        return "Verifications";
-      case "SUBMISSIONS":
-        return "Submissions";
-    }
-  };
+  const getTitle = () =>
+    ({
+      PARTICIPANTS: "Participants",
+      LEADERBOARD: "Leaderboard",
+      VERIFICATIONS: "Verifications",
+      SUBMISSIONS: "Submissions",
+    })[exportType];
 
   const getFilterSchema = () => {
     switch (exportType) {
       case "PARTICIPANTS":
-        return participantsSchema;
+        return participantsFilters;
       case "LEADERBOARD":
-        return leaderboardSchema;
+        return leaderboardFilters;
       case "VERIFICATIONS":
-        return verificationSchema;
+        return verificationFilters;
       case "SUBMISSIONS":
-        return submissionSchema;
+        return submissionFilters;
+      default:
+        return z.object({});
     }
   };
 
   const form = useForm({
-    resolver: zodResolver(
-      z.object({
-        email: z.string().email({ message: "Invalid email address." }).optional().or(z.literal("")),
-        filters: getFilterSchema(),
-      }),
-    ),
+    resolver: zodResolver(z.object({ ...baseFilters, ...getFilterSchema().shape })),
     defaultValues: {
       email: "",
-      filters:
-        exportType === "PARTICIPANTS"
-          ? { isBanned: "false" }
-          : exportType === "LEADERBOARD"
-            ? { timespan: "alltime" }
-            : { status: "ALL", dateRange: undefined },
+      isBanned: "false",
+      purchaseStatus: "ALL",
+      country: "ALL",
+      dateRange: undefined,
+      timespan: "alltime",
+      limit: 100,
+      status: "ALL",
+      verificationType: "ALL",
+      eventType: "ALL",
     },
   });
 
-  const onSubmit = async (data: FormData) => {
-    const finalFilters = { ...data.filters, email: data.email };
+  const onSubmit = async (data: any) => {
+    // Bersihkan filter yang tidak relevan atau 'ALL'
+    const cleanFilters = Object.entries(data).reduce((acc, [key, value]) => {
+      if (value && value !== "ALL") {
+        acc[key] = value;
+      }
+      return acc;
+    }, {} as any);
+
     try {
-      await requestExport(exportType, finalFilters);
+      await requestExport(exportType, cleanFilters);
       toast.success("Export job started!", {
         description: "You'll be notified when the file is ready for download.",
       });
@@ -120,58 +130,154 @@ export function ExportFeature({ exportType }: ExportFeatureProps) {
     switch (exportType) {
       case "PARTICIPANTS":
         return (
-          <FormField
-            control={form.control}
-            name="filters.isBanned"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Participant Status</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="false">Active</SelectItem>
-                    <SelectItem value="true">Blocked</SelectItem>
-                  </SelectContent>
-                </Select>
-              </FormItem>
-            )}
-          />
+          <>
+            <FormField
+              control={form.control}
+              name="isBanned"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Status</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="false">Active</SelectItem>
+                      <SelectItem value="true">Blocked</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="purchaseStatus"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Verification Status</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="ALL">All Statuses</SelectItem>
+                      <SelectItem value="NOT_VERIFIED">Not Verified</SelectItem>
+                      <SelectItem value="PENDING">Pending</SelectItem>
+                      <SelectItem value="APPROVED">Approved</SelectItem>
+                      <SelectItem value="REJECTED">Rejected</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="country"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Country</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a country" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="ALL">All Countries</SelectItem>
+                      {countries.map((c) => (
+                        <SelectItem key={c.value} value={c.value}>
+                          {c.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="dateRange"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Registration Date</FormLabel>
+                  <DateRangePicker date={field.value} onDateChange={field.onChange} />
+                </FormItem>
+              )}
+            />
+          </>
         );
       case "LEADERBOARD":
-        return (
-          <FormField
-            control={form.control}
-            name="filters.timespan"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Leaderboard Timespan</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select timespan" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="alltime">All-Time</SelectItem>
-                    <SelectItem value="weekly">Weekly</SelectItem>
-                    <SelectItem value="streak">Top Streak</SelectItem>
-                  </SelectContent>
-                </Select>
-              </FormItem>
-            )}
-          />
-        );
-      case "VERIFICATIONS":
-      case "SUBMISSIONS":
         return (
           <>
             <FormField
               control={form.control}
-              name="filters.status"
+              name="timespan"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Timespan</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select timespan" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="alltime">All-Time</SelectItem>
+                      <SelectItem value="weekly">Weekly</SelectItem>
+                      <SelectItem value="streak">Top Streak</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="country"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Country</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a country" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="ALL">All Countries</SelectItem>
+                      {countries.map((c) => (
+                        <SelectItem key={c.value} value={c.value}>
+                          {c.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="limit"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Top N Participants</FormLabel>
+                  <FormControl>
+                    <Input type="number" placeholder="e.g., 100" {...field} />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </>
+        );
+      case "VERIFICATIONS":
+        return (
+          <>
+            <FormField
+              control={form.control}
+              name="status"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Status</FormLabel>
@@ -193,10 +299,113 @@ export function ExportFeature({ exportType }: ExportFeatureProps) {
             />
             <FormField
               control={form.control}
-              name="filters.dateRange"
+              name="verificationType"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Date Range (Optional)</FormLabel>
+                  <FormLabel>Verification Type</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="ALL">All Types</SelectItem>
+                      <SelectItem value="MEMBER_GYM">Member Gym</SelectItem>
+                      <SelectItem value="RECEIPT">Receipt</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="dateRange"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Submission Date</FormLabel>
+                  <DateRangePicker date={field.value} onDateChange={field.onChange} />
+                </FormItem>
+              )}
+            />
+          </>
+        );
+      case "SUBMISSIONS":
+        return (
+          <>
+            <FormField
+              control={form.control}
+              name="status"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Status</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="ALL">All Statuses</SelectItem>
+                      <SelectItem value="PENDING">Pending</SelectItem>
+                      <SelectItem value="APPROVED">Approved</SelectItem>
+                      <SelectItem value="REJECTED">Rejected</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="eventType"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Event Type</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select event type" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="ALL">All Types</SelectItem>
+                      <SelectItem value="INDIVIDUAL">Individual</SelectItem>
+                      <SelectItem value="GROUP">Group</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="country"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Country</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a country" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="ALL">All Countries</SelectItem>
+                      {countries.map((c) => (
+                        <SelectItem key={c.value} value={c.value}>
+                          {c.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="dateRange"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Submission Date</FormLabel>
                   <DateRangePicker date={field.value} onDateChange={field.onChange} />
                 </FormItem>
               )}

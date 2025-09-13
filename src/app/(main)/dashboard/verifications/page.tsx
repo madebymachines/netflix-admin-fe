@@ -126,31 +126,31 @@ export default function VerificationsPage() {
   return (
     <>
       <Card>
-        <CardHeader className="flex-row items-center justify-between">
-          <div>
-            <CardTitle>Purchase Verifications</CardTitle>
-            <CardDescription>Review and manage user purchase verifications.</CardDescription>
-          </div>
-          <ExportFeature exportType="VERIFICATIONS" />
+        <CardHeader>
+          <CardTitle>Purchase Verifications</CardTitle>
+          <CardDescription>Review and manage user purchase verifications.</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
-          <div className="flex items-center gap-4">
-            <Input
-              placeholder="Search by user name or email..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="max-w-sm"
-            />
-            <Select value={typeFilter} onValueChange={setTypeFilter}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filter by Type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">All Types</SelectItem>
-                <SelectItem value="MEMBER_GYM">Member Gym</SelectItem>
-                <SelectItem value="RECEIPT">Receipt</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <Input
+                placeholder="Search by user name or email..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="max-w-sm"
+              />
+              <Select value={typeFilter} onValueChange={setTypeFilter}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Filter by Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">All Types</SelectItem>
+                  <SelectItem value="MEMBER_GYM">Member Gym</SelectItem>
+                  <SelectItem value="RECEIPT">Receipt</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <ExportFeature exportType="VERIFICATIONS" />
           </div>
 
           {isLoading ? (
