@@ -12,15 +12,16 @@ import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/auth/authStore";
 import { usePreferencesStore } from "@/stores/preferences/preferences-provider";
 import { type SidebarVariant } from "@/types/preferences/layout";
-
-import { LayoutControls } from "./_components/sidebar/layout-controls";
-import { SearchDialog } from "./_components/sidebar/search-dialog";
+import { useSocket } from "@/hooks/useSocket";
+import { NotificationBell } from "@/components/NotificationBell";
 import { ThemeSwitcher } from "./_components/sidebar/theme-switcher";
+import { SearchDialog } from "./_components/sidebar/search-dialog";
 
 function DashboardLayoutInner({ children }: { children: ReactNode }) {
   const admin = useAuthStore((state) => state.admin);
   const pathname = usePathname();
   const { isMobile, setOpenMobile } = useSidebar();
+  useSocket(); // Initialize socket connection
 
   useEffect(() => {
     if (isMobile) {
@@ -28,16 +29,9 @@ function DashboardLayoutInner({ children }: { children: ReactNode }) {
     }
   }, [pathname, isMobile, setOpenMobile]);
 
-  // FIX: Explicitly type the constants to match component prop types
   const sidebarVariant: SidebarVariant = "inset";
   const sidebarCollapsible = "icon";
   const contentLayout = "centered";
-
-  const layoutPreferences = {
-    contentLayout,
-    variant: sidebarVariant,
-    collapsible: sidebarCollapsible,
-  };
 
   if (!admin) {
     return null;
@@ -61,7 +55,7 @@ function DashboardLayoutInner({ children }: { children: ReactNode }) {
               <SearchDialog />
             </div>
             <div className="flex items-center gap-2">
-              {/* <LayoutControls {...layoutPreferences} /> */}
+              <NotificationBell />
               <ThemeSwitcher />
             </div>
           </div>

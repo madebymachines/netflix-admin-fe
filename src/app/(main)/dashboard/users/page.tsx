@@ -25,6 +25,7 @@ import { useDataTableInstance } from "@/hooks/use-data-table-instance";
 import api from "@/lib/axios";
 import { getColumns } from "./columns";
 import { User } from "./schema";
+import { ExportFeature } from "@/components/ExportFeature";
 
 // API Fetcher with filters
 const fetchUsers = async (searchTerm: string, banStatus: string): Promise<{ data: User[]; pagination: any }> => {
@@ -119,11 +120,14 @@ export default function UsersPage() {
   return (
     <>
       <Card>
-        <CardHeader>
-          <CardTitle>User Management</CardTitle>
-          <CardDescription>
-            {banStatusFilter === "true" ? "Manage blocked participants" : "Manage active participants"}
-          </CardDescription>
+        <CardHeader className="flex-row items-center justify-between">
+          <div>
+            <CardTitle>User Management</CardTitle>
+            <CardDescription>
+              {banStatusFilter === "true" ? "Manage blocked participants" : "Manage active participants"}
+            </CardDescription>
+          </div>
+          <ExportFeature exportType="PARTICIPANTS" />
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           <div className="flex items-center gap-4">

@@ -13,6 +13,7 @@ import api from "@/lib/axios";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getColumns } from "./columns";
 import { LeaderboardEntry } from "./schema";
+import { ExportFeature } from "@/components/ExportFeature";
 
 type Timespan = "alltime" | "weekly" | "streak";
 
@@ -63,9 +64,12 @@ export default function LeaderboardPage() {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Leaderboard</CardTitle>
-        <CardDescription>See who is at the top of the ranks.</CardDescription>
+      <CardHeader className="flex-row items-center justify-between">
+        <div>
+          <CardTitle>Leaderboard</CardTitle>
+          <CardDescription>See who is at the top of the ranks.</CardDescription>
+        </div>
+        <ExportFeature exportType="LEADERBOARD" />
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         <Tabs value={timespan} onValueChange={(value) => setTimespan(value as Timespan)}>
