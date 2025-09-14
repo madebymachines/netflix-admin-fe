@@ -8,6 +8,7 @@ export const submissionSchema = z.object({
   submissionImageUrl: z.string().url(),
   createdAt: z.string().datetime(),
   user: z.object({
+    id: z.number(),
     name: z.string(),
     email: z.string().email(),
   }),

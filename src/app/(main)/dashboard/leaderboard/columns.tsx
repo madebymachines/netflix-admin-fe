@@ -10,7 +10,12 @@ import { PersonStanding, VenetianMask } from "lucide-react";
 
 type Timespan = "alltime" | "weekly" | "streak";
 
-export const getColumns = (timespan: Timespan): ColumnDef<LeaderboardEntry>[] => [
+type ColumnsProps = {
+  onViewDetails?: (id: number) => void;
+  timespan: Timespan;
+};
+
+export const getColumns = ({ onViewDetails, timespan }: ColumnsProps): ColumnDef<LeaderboardEntry>[] => [
   {
     accessorKey: "rank",
     header: ({ column }) => <DataTableColumnHeader column={column} title="#" />,
@@ -21,13 +26,17 @@ export const getColumns = (timespan: Timespan): ColumnDef<LeaderboardEntry>[] =>
     accessorKey: "username",
     header: ({ column }) => <DataTableColumnHeader column={column} title="User" />,
     cell: ({ row }) => (
-      <div className="flex items-center gap-3">
+      <button
+        onClick={() => onViewDetails?.(row.original.userId)}
+        className="flex items-center gap-3 text-left hover:underline"
+        disabled={!onViewDetails}
+      >
         <Avatar className="h-8 w-8">
           <AvatarImage src={row.original.profilePictureUrl || undefined} alt={row.original.username} />
           <AvatarFallback>{getInitials(row.original.username)}</AvatarFallback>
         </Avatar>
         <span className="font-medium">{row.original.username}</span>
-      </div>
+      </button>
     ),
   },
   {

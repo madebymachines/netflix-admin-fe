@@ -11,7 +11,7 @@ import { ArrowLeft, ShieldBan, ShieldCheck } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { getInitials } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -19,6 +19,7 @@ import api from "@/lib/axios";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { ActivityHistoryTable } from "./ActivityHistoryTable"; // Impor komponen baru
 
 // API Fetcher
 const fetchUserDetails = async (userId: number) => {
@@ -141,62 +142,7 @@ export default function UserDetailPage() {
           </Card>
 
           <div className="flex flex-col gap-6 lg:col-span-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Activity History</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ScrollArea className="h-60 w-full">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Event</TableHead>
-                        <TableHead>Points</TableHead>
-                        <TableHead>From</TableHead>
-                        <TableHead>To</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Date</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {user.activityHistory.length > 0 ? (
-                        user.activityHistory.map((act: any) => (
-                          <TableRow key={act.id}>
-                            <TableCell>{act.eventType}</TableCell>
-                            <TableCell className={act.status === "REJECTED" ? "text-red-500" : "text-green-500"}>
-                              {act.status === "REJECTED" ? "-" : "+"}
-                              {act.pointsEarn}
-                            </TableCell>
-                            <TableCell>{act.pointsFrom}</TableCell>
-                            <TableCell>{act.pointsTo}</TableCell>
-                            <TableCell>
-                              <Badge
-                                variant={
-                                  act.status === "APPROVED"
-                                    ? "secondary"
-                                    : act.status === "PENDING"
-                                      ? "outline"
-                                      : "destructive"
-                                }
-                              >
-                                {act.status}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>{format(new Date(act.createdAt), "dd MMM, HH:mm")}</TableCell>
-                          </TableRow>
-                        ))
-                      ) : (
-                        <TableRow>
-                          <TableCell colSpan={6} className="text-center">
-                            No activities found.
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                </ScrollArea>
-              </CardContent>
-            </Card>
+            <ActivityHistoryTable userId={userId} />
             <Card>
               <CardHeader>
                 <CardTitle>Purchase Verifications</CardTitle>

@@ -20,16 +20,32 @@ type ColumnsProps = {
   onApprove: (id: number) => void;
   onReject: (id: number) => void;
   onViewImage: (url: string) => void;
+  onViewDetails: (id: number) => void;
 };
 
-export const getColumns = ({ onApprove, onReject, onViewImage }: ColumnsProps): ColumnDef<Submission>[] => [
+export const getColumns = ({
+  onApprove,
+  onReject,
+  onViewImage,
+  onViewDetails,
+}: ColumnsProps): ColumnDef<Submission>[] => [
   {
     accessorKey: "user.name",
     header: ({ column }) => <DataTableColumnHeader column={column} title="User" />,
+    cell: ({ row }) => (
+      <button onClick={() => onViewDetails(row.original.user.id)} className="hover:underline">
+        {row.original.user.name}
+      </button>
+    ),
   },
   {
     accessorKey: "user.email",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Email" />,
+    cell: ({ row }) => (
+      <button onClick={() => onViewDetails(row.original.user.id)} className="hover:underline">
+        {row.original.user.email}
+      </button>
+    ),
   },
   {
     accessorKey: "eventType",

@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 export const leaderboardEntrySchema = z.object({
+  userId: z.number(),
   rank: z.number(),
   username: z.string(),
   profilePictureUrl: z.string().nullable(),

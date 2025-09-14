@@ -2,10 +2,10 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { toast } from "sonner";
 import { useDebounce } from "@uidotdev/usehooks";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { keepPreviousData } from "@tanstack/react-query";
 
 import { DataTable } from "@/components/data-table/data-table";
@@ -21,7 +21,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -52,6 +52,7 @@ const fetchSubmissions = async (
 
 export default function ActivitySubmissionsPage() {
   const queryClient = useQueryClient();
+  const router = useRouter();
   const searchParams = useSearchParams();
 
   const [pagination, setPagination] = useState({
@@ -120,6 +121,10 @@ export default function ActivitySubmissionsPage() {
     setImageViewOpen(true);
   }
 
+  function onViewDetails(id: number) {
+    router.push(`/dashboard/users/${id}`);
+  }
+
   function handleRejectSubmit() {
     if (selectedId) {
       rejectMutation.mutate({ id: selectedId, reason: rejectionReason });
@@ -132,7 +137,7 @@ export default function ActivitySubmissionsPage() {
     setRejectionReason("");
   }
 
-  const columns = getColumns({ onApprove, onReject, onViewImage });
+  const columns = useMemo(() => getColumns({ onApprove, onReject, onViewImage, onViewDetails }), []);
   const table = useDataTableInstance({
     data: tableData,
     columns,
@@ -215,6 +220,10 @@ export default function ActivitySubmissionsPage() {
 
       <Dialog open={imageViewOpen} onOpenChange={setImageViewOpen}>
         <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Submission Image Preview</DialogTitle>
+            <DialogDescription>Full-size preview of the submitted image.</DialogDescription>
+          </DialogHeader>
           <div className="relative h-[80vh] w-full">
             <Image src={selectedImageUrl} alt="Submission Preview" layout="fill" objectFit="contain" />
           </div>

@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { keepPreviousData } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 
 import { DataTable } from "@/components/data-table/data-table";
 import { DataTablePagination } from "@/components/data-table/data-table-pagination";
@@ -36,6 +37,7 @@ const fetchLeaderboard = async (
 };
 
 export default function LeaderboardPage() {
+  const router = useRouter();
   const [timespan, setTimespan] = useState<Timespan>("alltime");
   const [pagination, setPagination] = useState({
     pageIndex: 0,
@@ -51,7 +53,11 @@ export default function LeaderboardPage() {
   const tableData = data?.leaderboard ?? [];
   const pageCount = data?.pagination.totalPages ?? 0;
 
-  const columns = useMemo(() => getColumns(timespan), [timespan]);
+  const onViewDetails = (id: number) => {
+    router.push(`/dashboard/users/${id}`);
+  };
+
+  const columns = useMemo(() => getColumns({ onViewDetails, timespan }), [timespan]);
 
   const table = useDataTableInstance({
     data: tableData,
@@ -64,9 +70,12 @@ export default function LeaderboardPage() {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Leaderboard</CardTitle>
-        <CardDescription>See who is at the top of the ranks.</CardDescription>
+      <CardHeader className="flex-row items-center justify-between">
+        <div>
+          <CardTitle>Leaderboard</CardTitle>
+          <CardDescription>See who is at the top of the ranks.</CardDescription>
+        </div>
+        <ExportFeature exportType="LEADERBOARD" />
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
@@ -77,7 +86,6 @@ export default function LeaderboardPage() {
               <TabsTrigger value="streak">Top Streak</TabsTrigger>
             </TabsList>
           </Tabs>
-          <ExportFeature exportType="LEADERBOARD" />
         </div>
 
         {isError ? (

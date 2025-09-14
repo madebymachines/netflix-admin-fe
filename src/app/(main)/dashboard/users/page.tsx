@@ -27,17 +27,22 @@ import api from "@/lib/axios";
 import { getColumns } from "./columns";
 import { User } from "./schema";
 import { ExportFeature } from "@/components/ExportFeature";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-// API Fetcher with filters and pagination
+// API Fetcher with all filters
 const fetchUsers = async (
   searchTerm: string,
   banStatus: string,
+  gender: string,
+  purchaseStatus: string,
   page: number,
   limit: number,
 ): Promise<{ data: User[]; pagination: any }> => {
   const params = new URLSearchParams();
   if (searchTerm) params.append("name", searchTerm);
   if (banStatus && banStatus !== "all") params.append("isBanned", banStatus);
+  if (gender && gender !== "ALL") params.append("gender", gender);
+  if (purchaseStatus && purchaseStatus !== "ALL") params.append("purchaseStatus", purchaseStatus);
   params.append("page", String(page + 1));
   params.append("limit", String(limit));
 
@@ -58,6 +63,8 @@ export default function UsersPage() {
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
   const [banReason, setBanReason] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [genderFilter, setGenderFilter] = useState("ALL");
+  const [purchaseStatusFilter, setPurchaseStatusFilter] = useState("ALL");
 
   const [banStatusFilter, setBanStatusFilter] = useState(() => {
     const initialFilter = searchParams.get("filter");
@@ -74,8 +81,16 @@ export default function UsersPage() {
   }, [searchParams]);
 
   const { data, isLoading, isError, isPlaceholderData } = useQuery({
-    queryKey: ["users", debouncedSearchTerm, banStatusFilter, pagination],
-    queryFn: () => fetchUsers(debouncedSearchTerm, banStatusFilter, pagination.pageIndex, pagination.pageSize),
+    queryKey: ["users", debouncedSearchTerm, banStatusFilter, genderFilter, purchaseStatusFilter, pagination],
+    queryFn: () =>
+      fetchUsers(
+        debouncedSearchTerm,
+        banStatusFilter,
+        genderFilter,
+        purchaseStatusFilter,
+        pagination.pageIndex,
+        pagination.pageSize,
+      ),
     placeholderData: keepPreviousData,
   });
 
@@ -128,7 +143,7 @@ export default function UsersPage() {
     setBanReason("");
   };
 
-  const columns = useMemo(() => getColumns({ onBan, onUnban, onViewDetails }), [onBan, onUnban, onViewDetails]);
+  const columns = useMemo(() => getColumns({ onBan, onUnban, onViewDetails }), []);
 
   const table = useDataTableInstance({
     data: tableData,
@@ -149,13 +164,37 @@ export default function UsersPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
-          <div className="flex items-center justify-between gap-4">
-            <Input
-              placeholder="Search by name..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="max-w-sm"
-            />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Input
+                placeholder="Search by name..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="max-w-sm"
+              />
+              <Select value={genderFilter} onValueChange={setGenderFilter}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Filter by Gender" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">All Genders</SelectItem>
+                  <SelectItem value="MALE">Male</SelectItem>
+                  <SelectItem value="FEMALE">Female</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={purchaseStatusFilter} onValueChange={setPurchaseStatusFilter}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Filter by Verification" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">All Statuses</SelectItem>
+                  <SelectItem value="NOT_VERIFIED">Not Verified</SelectItem>
+                  <SelectItem value="PENDING">Pending</SelectItem>
+                  <SelectItem value="APPROVED">Approved</SelectItem>
+                  <SelectItem value="REJECTED">Rejected</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             <ExportFeature exportType="PARTICIPANTS" />
           </div>
 
