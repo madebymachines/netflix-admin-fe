@@ -15,6 +15,7 @@ const fetchStats = async (): Promise<{
     pendingSubmissions: number;
     approvedSubmissions: number;
     rejectedSubmissions: number;
+    flaggedSubmissions: number; // Tambahkan properti ini
   };
 }> => {
   const response = await api.get("/admin/stats");
@@ -51,10 +52,13 @@ export function NavMainWithCounts() {
     items: group.items.map((item) => {
       if (item.key && statsData?.data) {
         const count = statsData.data[item.key];
-        return {
-          ...item,
-          title: `${item.title} (${formatK(count)})`,
-        };
+        // Hanya tampilkan count jika lebih dari 0
+        if (count > 0) {
+          return {
+            ...item,
+            title: `${item.title} (${formatK(count)})`,
+          };
+        }
       }
       return item;
     }),

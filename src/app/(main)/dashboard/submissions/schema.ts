@@ -7,6 +7,8 @@ export const submissionSchema = z.object({
   pointsEarn: z.number(),
   submissionImageUrl: z.string().url(),
   createdAt: z.string().datetime(),
+  isFlagged: z.boolean().optional(),
+  flagReason: z.string().nullable().optional(),
   user: z.object({
     id: z.number(),
     name: z.string(),

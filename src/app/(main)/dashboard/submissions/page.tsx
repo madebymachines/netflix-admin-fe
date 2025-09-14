@@ -27,13 +27,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDataTableInstance } from "@/hooks/use-data-table-instance";
 import api from "@/lib/axios";
-
 import { getColumns } from "./columns";
 import { Submission } from "./schema";
 import { ExportFeature } from "@/components/ExportFeature";
 
 const fetchSubmissions = async (
-  status: string,
+  status: string | undefined,
+  isFlagged: boolean | undefined,
   searchTerm: string,
   eventType: string,
   page: number,
@@ -41,6 +41,7 @@ const fetchSubmissions = async (
 ): Promise<{ data: Submission[]; pagination: any }> => {
   const params = new URLSearchParams();
   if (status) params.append("status", status);
+  if (isFlagged !== undefined) params.append("isFlagged", String(isFlagged));
   if (searchTerm) params.append("nameOrEmail", searchTerm);
   if (eventType && eventType !== "ALL") params.append("eventType", eventType);
   params.append("page", String(page + 1));
@@ -65,20 +66,30 @@ export default function ActivitySubmissionsPage() {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
 
-  const [statusFilter, setStatusFilter] = useState(searchParams.get("status") || "PENDING");
+  const statusFilter = searchParams.get("status") || "PENDING";
   const [eventTypeFilter, setEventTypeFilter] = useState("ALL");
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
   useEffect(() => {
-    setStatusFilter(searchParams.get("status") || "PENDING");
     setPagination((prev) => ({ ...prev, pageIndex: 0 }));
   }, [searchParams]);
 
   const { data, isLoading, isError, isPlaceholderData } = useQuery({
     queryKey: ["submissions", statusFilter, debouncedSearchTerm, eventTypeFilter, pagination],
-    queryFn: () =>
-      fetchSubmissions(statusFilter, debouncedSearchTerm, eventTypeFilter, pagination.pageIndex, pagination.pageSize),
+    queryFn: () => {
+      const isFlaggedQuery = statusFilter === "FLAGGED" ? true : undefined;
+      const statusQuery =
+        statusFilter === "FLAGGED" ? undefined : statusFilter === "ALL_STATUS" ? undefined : statusFilter;
+      return fetchSubmissions(
+        statusQuery,
+        isFlaggedQuery,
+        debouncedSearchTerm,
+        eventTypeFilter,
+        pagination.pageIndex,
+        pagination.pageSize,
+      );
+    },
     placeholderData: keepPreviousData,
   });
 
@@ -137,7 +148,10 @@ export default function ActivitySubmissionsPage() {
     setRejectionReason("");
   }
 
-  const columns = useMemo(() => getColumns({ onApprove, onReject, onViewImage, onViewDetails }), []);
+  const columns = useMemo(
+    () => getColumns({ onApprove, onReject, onViewImage, onViewDetails, statusFilter }),
+    [statusFilter],
+  );
   const table = useDataTableInstance({
     data: tableData,
     columns,
@@ -147,24 +161,39 @@ export default function ActivitySubmissionsPage() {
     state: { pagination },
   });
 
+  const getPageTitle = () => {
+    switch (statusFilter) {
+      case "PENDING":
+        return "Pending Submissions";
+      case "APPROVED":
+        return "Approved Submissions";
+      case "REJECTED":
+        return "Rejected Submissions";
+      case "FLAGGED":
+        return "Flagged Submissions";
+      default:
+        return "All Submissions";
+    }
+  };
+
   return (
     <>
       <Card>
         <CardHeader>
-          <CardTitle>Activity Submissions</CardTitle>
+          <CardTitle>{getPageTitle()}</CardTitle>
           <CardDescription>Review, approve, or reject user activity submissions.</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
               <Input
                 placeholder="Search by user name or email..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="max-w-sm"
+                className="w-full md:w-64"
               />
               <Select value={eventTypeFilter} onValueChange={setEventTypeFilter}>
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-full md:w-[180px]">
                   <SelectValue placeholder="Filter by Event Type" />
                 </SelectTrigger>
                 <SelectContent>

@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDataTableInstance } from "@/hooks/use-data-table-instance";
 import api from "@/lib/axios";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getColumns } from "./columns";
 import { LeaderboardEntry } from "./schema";
 import { ExportFeature } from "@/components/ExportFeature";
@@ -70,12 +70,9 @@ export default function LeaderboardPage() {
 
   return (
     <Card>
-      <CardHeader className="flex-row items-center justify-between">
-        <div>
-          <CardTitle>Leaderboard</CardTitle>
-          <CardDescription>See who is at the top of the ranks.</CardDescription>
-        </div>
-        <ExportFeature exportType="LEADERBOARD" />
+      <CardHeader>
+        <CardTitle>Leaderboard</CardTitle>
+        <CardDescription>See who is at the top of the ranks.</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
@@ -86,8 +83,8 @@ export default function LeaderboardPage() {
               <TabsTrigger value="streak">Top Streak</TabsTrigger>
             </TabsList>
           </Tabs>
+          <ExportFeature exportType="LEADERBOARD" />
         </div>
-
         {isError ? (
           <p className="text-destructive">Failed to load leaderboard data.</p>
         ) : (

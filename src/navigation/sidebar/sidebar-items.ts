@@ -10,6 +10,7 @@ import {
   BookCheck,
   BookX,
   BookLock,
+  Flag, // Impor ikon Flag
 } from "lucide-react";
 
 export interface NavMainItem {
@@ -22,7 +23,8 @@ export interface NavMainItem {
     | "rejectedVerifications"
     | "pendingSubmissions"
     | "approvedSubmissions"
-    | "rejectedSubmissions";
+    | "rejectedSubmissions"
+    | "flaggedSubmissions"; // Tambahkan key baru
 }
 
 export interface NavGroup {
@@ -103,6 +105,12 @@ export const sidebarItems: NavGroup[] = [
         url: "/dashboard/submissions?status=REJECTED",
         icon: BookX,
         key: "rejectedSubmissions",
+      },
+      {
+        title: "Flagged", // Item baru
+        url: "/dashboard/submissions?status=FLAGGED",
+        icon: Flag,
+        key: "flaggedSubmissions",
       },
     ],
   },
