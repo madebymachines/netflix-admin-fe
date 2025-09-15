@@ -13,10 +13,8 @@ import { useDataTableInstance } from "@/hooks/use-data-table-instance";
 import api from "@/lib/axios";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getColumns } from "./columns";
-import { LeaderboardEntry } from "./schema";
+import { LeaderboardEntry, Timespan } from "./schema"; // Impor Timespan dari schema
 import { ExportFeature } from "@/components/ExportFeature";
-
-type Timespan = "alltime" | "weekly" | "streak";
 
 // API Fetcher
 const fetchLeaderboard = async (
@@ -79,6 +77,7 @@ export default function LeaderboardPage() {
           <Tabs value={timespan} onValueChange={(value) => setTimespan(value as Timespan)}>
             <TabsList>
               <TabsTrigger value="alltime">All-Time</TabsTrigger>
+              <TabsTrigger value="monthly">Monthly</TabsTrigger>
               <TabsTrigger value="weekly">Weekly</TabsTrigger>
               <TabsTrigger value="streak">Top Streak</TabsTrigger>
             </TabsList>

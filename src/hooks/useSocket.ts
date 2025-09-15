@@ -12,10 +12,14 @@ export const useSocket = () => {
 
   useEffect(() => {
     if (isAuthenticated && admin && !socket) {
+      // Pastikan environment variable ini adalah URL backend Anda, contoh: https://netflix-be-1.onrender.com
       const socketUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+
       socket = io(socketUrl, {
         query: { adminId: admin.id },
         withCredentials: true,
+        // Opsi ini bisa membantu jika ada masalah dengan proxy
+        transports: ["websocket", "polling"],
       });
 
       socket.on("connect", () => {

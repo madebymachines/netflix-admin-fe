@@ -3,12 +3,10 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getInitials } from "@/lib/utils";
-import { LeaderboardEntry } from "./schema";
+import { LeaderboardEntry, Timespan } from "./schema"; // Impor Timespan dari schema
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 import { Badge } from "@/components/ui/badge";
 import { PersonStanding, VenetianMask } from "lucide-react";
-
-type Timespan = "alltime" | "weekly" | "streak";
 
 type ColumnsProps = {
   onViewDetails?: (id: number) => void;

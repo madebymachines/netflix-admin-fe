@@ -1,5 +1,8 @@
 import { z } from "zod";
 
+// PERBAIKAN: Menambahkan kata kunci 'export'
+export type Timespan = "alltime" | "weekly" | "monthly" | "streak";
+
 export const leaderboardEntrySchema = z.object({
   userId: z.number(),
   rank: z.number(),
@@ -7,7 +10,7 @@ export const leaderboardEntrySchema = z.object({
   profilePictureUrl: z.string().nullable(),
   country: z.string().nullable(),
   gender: z.enum(["MALE", "FEMALE"]).nullable().optional(),
-  points: z.number().optional(), // alltime & weekly
+  points: z.number().optional(), // alltime, weekly, monthly
   streak: z.number().optional(), // streak
 });
 

@@ -227,6 +227,7 @@ export function ExportFeature({ exportType }: ExportFeatureProps) {
                     </FormControl>
                     <SelectContent>
                       <SelectItem value="alltime">All-Time</SelectItem>
+                      <SelectItem value="monthly">Monthly</SelectItem>
                       <SelectItem value="weekly">Weekly</SelectItem>
                       <SelectItem value="streak">Top Streak</SelectItem>
                     </SelectContent>
