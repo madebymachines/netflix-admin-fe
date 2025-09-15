@@ -13,7 +13,7 @@ export const useSocket = () => {
   useEffect(() => {
     if (isAuthenticated && admin && !socket) {
       // Pastikan environment variable ini adalah URL backend Anda, contoh: https://netflix-be-1.onrender.com
-      const socketUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+      const socketUrl = "https://netflix-be-1.onrender.com";
 
       socket = io(socketUrl, {
         query: { adminId: admin.id },
