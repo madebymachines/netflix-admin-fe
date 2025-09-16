@@ -13,8 +13,10 @@ import { useDataTableInstance } from "@/hooks/use-data-table-instance";
 import api from "@/lib/axios";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getColumns } from "./columns";
-import { LeaderboardEntry, Timespan } from "./schema"; // Impor Timespan dari schema
+import { LeaderboardEntry } from "./schema";
 import { ExportFeature } from "@/components/ExportFeature";
+
+type Timespan = "alltime" | "weekly" | "monthly" | "streak";
 
 // API Fetcher
 const fetchLeaderboard = async (
