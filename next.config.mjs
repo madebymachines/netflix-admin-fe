@@ -16,7 +16,7 @@ const nextConfig = {
     return [
       {
         source: "/api/:path*",
-        destination: "https://netflix-be-1.onrender.com/v1/:path*",
+        destination: "https://mirror-100-plus-be.onrender.com/v1/:path*",
       },
     ];
   },

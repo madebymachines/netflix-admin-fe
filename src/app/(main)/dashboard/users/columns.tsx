@@ -2,7 +2,7 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
-import { MoreHorizontal, Ban, CheckCircle, Eye, VenetianMask, PersonStanding } from "lucide-react";
+import { MoreHorizontal, Ban, CheckCircle, Eye } from "lucide-react";
 
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 import { Badge } from "@/components/ui/badge";
@@ -26,34 +26,17 @@ type ColumnsProps = {
 
 export const getColumns = ({ onBan, onUnban, onViewDetails }: ColumnsProps): ColumnDef<User>[] => [
   {
-    accessorKey: "name",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Name" />,
+    accessorKey: "username",
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Username" />,
     cell: ({ row }) => (
       <button onClick={() => onViewDetails(row.original.id)} className="hover:underline">
-        {row.original.name}
+        {row.original.username}
       </button>
     ),
   },
   {
     accessorKey: "email",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Email" />,
-  },
-  {
-    accessorKey: "gender",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Gender" />,
-    cell: ({ row }) => {
-      if (!row.original.gender) return "N/A";
-      return (
-        <Badge variant="outline" className="capitalize">
-          {row.original.gender === "MALE" ? (
-            <PersonStanding className="mr-1 h-3 w-3" />
-          ) : (
-            <VenetianMask className="mr-1 h-3 w-3" />
-          )}
-          {row.original.gender.toLowerCase()}
-        </Badge>
-      );
-    },
   },
   {
     accessorKey: "country",

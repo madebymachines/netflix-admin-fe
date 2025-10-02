@@ -8,7 +8,7 @@ export const verificationSchema = z.object({
   submittedAt: z.string().datetime(),
   user: z.object({
     id: z.number(),
-    name: z.string(),
+    username: z.string(),
     email: z.string().email(),
   }),
 });

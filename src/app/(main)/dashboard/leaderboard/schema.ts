@@ -9,7 +9,6 @@ export const leaderboardEntrySchema = z.object({
   username: z.string(),
   profilePictureUrl: z.string().nullable(),
   country: z.string().nullable(),
-  gender: z.enum(["MALE", "FEMALE"]).nullable().optional(),
   points: z.number().optional(), // alltime, weekly, monthly
   streak: z.number().optional(), // streak
 });

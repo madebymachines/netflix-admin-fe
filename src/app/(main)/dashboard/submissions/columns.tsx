@@ -34,12 +34,12 @@ export const getColumns = ({
 }: ColumnsProps): ColumnDef<Submission>[] => {
   const baseColumns: ColumnDef<Submission>[] = [
     {
-      accessorKey: "user.name",
+      accessorKey: "user.username",
       header: ({ column }) => <DataTableColumnHeader column={column} title="User" />,
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
           <button onClick={() => onViewDetails(row.original.user.id)} className="hover:underline">
-            {row.original.user.name}
+            {row.original.user.username}
           </button>
           {row.original.isFlagged && statusFilter !== "FLAGGED" && (
             <TooltipProvider>

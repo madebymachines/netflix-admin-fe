@@ -96,11 +96,10 @@ export default function UserDetailPage() {
             <CardContent className="flex flex-col gap-4 p-6">
               <div className="flex flex-col items-center gap-2 text-center">
                 <Avatar className="h-24 w-24">
-                  <AvatarImage src={user.profilePictureUrl || undefined} alt={user.name} />
-                  <AvatarFallback className="text-3xl">{getInitials(user.name)}</AvatarFallback>
+                  <AvatarImage src={user.profilePictureUrl || undefined} alt={user.username} />
+                  <AvatarFallback className="text-3xl">{getInitials(user.username)}</AvatarFallback>
                 </Avatar>
-                <h2 className="text-lg font-semibold">{user.name}</h2>
-                <p className="text-muted-foreground text-sm">@{user.username}</p>
+                <h2 className="text-lg font-semibold">@{user.username}</h2>
                 {user.isBanned ? (
                   <Badge variant="destructive">
                     <ShieldBan className="mr-1 h-3 w-3" /> Banned
@@ -120,13 +119,7 @@ export default function UserDetailPage() {
                   <strong className="inline-block w-20">Email:</strong> {user.email}
                 </p>
                 <p>
-                  <strong className="inline-block w-20">Phone:</strong> {user.phoneNumber || "N/A"}
-                </p>
-                <p>
                   <strong className="inline-block w-20">Country:</strong> {user.country || "N/A"}
-                </p>
-                <p>
-                  <strong className="inline-block w-20">Gender:</strong> {user.gender || "N/A"}
                 </p>
               </div>
             </CardContent>

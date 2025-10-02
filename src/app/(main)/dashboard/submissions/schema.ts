@@ -11,7 +11,7 @@ export const submissionSchema = z.object({
   flagReason: z.string().nullable().optional(),
   user: z.object({
     id: z.number(),
-    name: z.string(),
+    username: z.string(),
     email: z.string().email(),
   }),
 });

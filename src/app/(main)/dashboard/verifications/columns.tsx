@@ -30,11 +30,11 @@ export const getColumns = ({
   onViewDetails,
 }: ColumnsProps): ColumnDef<Verification>[] => [
   {
-    accessorKey: "user.name",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="User Name" />,
+    accessorKey: "user.username",
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Username" />,
     cell: ({ row }) => (
       <button onClick={() => onViewDetails(row.original.user.id)} className="hover:underline">
-        {row.original.user.name}
+        {row.original.user.username}
       </button>
     ),
   },

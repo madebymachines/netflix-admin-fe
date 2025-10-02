@@ -33,7 +33,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 const fetchUsers = async (
   searchTerm: string,
   banStatus: string,
-  gender: string,
   purchaseStatus: string,
   page: number,
   limit: number,
@@ -41,7 +40,6 @@ const fetchUsers = async (
   const params = new URLSearchParams();
   if (searchTerm) params.append("name", searchTerm);
   if (banStatus && banStatus !== "all") params.append("isBanned", banStatus);
-  if (gender && gender !== "ALL") params.append("gender", gender);
   if (purchaseStatus && purchaseStatus !== "ALL") params.append("purchaseStatus", purchaseStatus);
   params.append("page", String(page + 1));
   params.append("limit", String(limit));
@@ -63,7 +61,6 @@ export default function UsersPage() {
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
   const [banReason, setBanReason] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [genderFilter, setGenderFilter] = useState("ALL");
   const [purchaseStatusFilter, setPurchaseStatusFilter] = useState("ALL");
 
   const [banStatusFilter, setBanStatusFilter] = useState(() => {
@@ -81,16 +78,9 @@ export default function UsersPage() {
   }, [searchParams]);
 
   const { data, isLoading, isError, isPlaceholderData } = useQuery({
-    queryKey: ["users", debouncedSearchTerm, banStatusFilter, genderFilter, purchaseStatusFilter, pagination],
+    queryKey: ["users", debouncedSearchTerm, banStatusFilter, purchaseStatusFilter, pagination],
     queryFn: () =>
-      fetchUsers(
-        debouncedSearchTerm,
-        banStatusFilter,
-        genderFilter,
-        purchaseStatusFilter,
-        pagination.pageIndex,
-        pagination.pageSize,
-      ),
+      fetchUsers(debouncedSearchTerm, banStatusFilter, purchaseStatusFilter, pagination.pageIndex, pagination.pageSize),
     placeholderData: keepPreviousData,
   });
 
@@ -167,21 +157,11 @@ export default function UsersPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Input
-                placeholder="Search by name..."
+                placeholder="Search by username..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="max-w-sm"
               />
-              <Select value={genderFilter} onValueChange={setGenderFilter}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Filter by Gender" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ALL">All Genders</SelectItem>
-                  <SelectItem value="MALE">Male</SelectItem>
-                  <SelectItem value="FEMALE">Female</SelectItem>
-                </SelectContent>
-              </Select>
               <Select value={purchaseStatusFilter} onValueChange={setPurchaseStatusFilter}>
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Filter by Verification" />
