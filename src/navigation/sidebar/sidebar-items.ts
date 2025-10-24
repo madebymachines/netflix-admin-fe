@@ -11,6 +11,7 @@ import {
   BookX,
   BookLock,
   Flag, // Impor ikon Flag
+  Settings,
 } from "lucide-react";
 
 export interface NavMainItem {
@@ -122,6 +123,17 @@ export const sidebarItems: NavGroup[] = [
         title: "Leaderboard",
         url: "/dashboard/leaderboard",
         icon: Trophy,
+      },
+    ],
+  },
+  {
+    id: 6,
+    label: "SYSTEM",
+    items: [
+      {
+        title: "Settings",
+        url: "/dashboard/settings",
+        icon: Settings,
       },
     ],
   },
