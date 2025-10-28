@@ -12,6 +12,7 @@ import {
   BookLock,
   Flag, // Impor ikon Flag
   Settings,
+  Award, // Impor ikon baru
 } from "lucide-react";
 
 export interface NavMainItem {
@@ -25,7 +26,7 @@ export interface NavMainItem {
     | "pendingSubmissions"
     | "approvedSubmissions"
     | "rejectedSubmissions"
-    | "flaggedSubmissions"; // Tambahkan key baru
+    | "flaggedSubmissions";
 }
 
 export interface NavGroup {
@@ -108,7 +109,7 @@ export const sidebarItems: NavGroup[] = [
         key: "rejectedSubmissions",
       },
       {
-        title: "Flagged", // Item baru
+        title: "Flagged",
         url: "/dashboard/submissions?status=FLAGGED",
         icon: Flag,
         key: "flaggedSubmissions",
@@ -128,6 +129,17 @@ export const sidebarItems: NavGroup[] = [
   },
   {
     id: 6,
+    label: "REPORTS", // Grup baru
+    items: [
+      {
+        title: "Weekly Winners",
+        url: "/dashboard/reports/weekly-winners",
+        icon: Award,
+      },
+    ],
+  },
+  {
+    id: 7, // ID disesuaikan
     label: "SYSTEM",
     items: [
       {
