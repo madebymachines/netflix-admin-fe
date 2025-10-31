@@ -14,12 +14,10 @@ import api from "@/lib/axios";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getColumns } from "./columns";
-import { LeaderboardEntry } from "./schema";
+import { LeaderboardEntry, Timespan } from "./schema";
 import { ExportFeature } from "@/components/ExportFeature";
 // --- PERUBAHAN DI SINI: Impor dari service API, bukan data statis ---
 import { getWeeklyReportSchedules, ReportSchedule } from "@/services/reports.api";
-
-type Timespan = "alltime" | "weekly" | "monthly" | "streak";
 
 const fetchLeaderboard = async (
   timespan: Timespan,
@@ -45,7 +43,7 @@ const fetchLeaderboard = async (
 
 export default function LeaderboardPage() {
   const router = useRouter();
-  const [timespan, setTimespan] = useState<Timespan>("alltime");
+  const [timespan, setTimespan] = useState<Timespan>("monthly");
   const [selectedWeek, setSelectedWeek] = useState<string>("current");
   const [pagination, setPagination] = useState({
     pageIndex: 0,
@@ -83,7 +81,7 @@ export default function LeaderboardPage() {
     router.push(`/dashboard/users/${id}`);
   };
 
-  const columns = useMemo(() => getColumns({ onViewDetails, timespan }), [timespan]);
+  const columns = useMemo(() => getColumns({ onViewDetails }), []);
 
   const table = useDataTableInstance({
     data: tableData,
@@ -104,10 +102,8 @@ export default function LeaderboardPage() {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <Tabs value={timespan} onValueChange={(value) => setTimespan(value as Timespan)}>
             <TabsList>
-              <TabsTrigger value="alltime">All-Time</TabsTrigger>
               <TabsTrigger value="monthly">Monthly</TabsTrigger>
               <TabsTrigger value="weekly">Weekly</TabsTrigger>
-              <TabsTrigger value="streak">Top Streak</TabsTrigger>
             </TabsList>
           </Tabs>
 

@@ -1,7 +1,6 @@
 import { z } from "zod";
 
-// PERBAIKAN: Menambahkan kata kunci 'export'
-export type Timespan = "alltime" | "weekly" | "monthly" | "streak";
+export type Timespan = "weekly" | "monthly";
 
 export const leaderboardEntrySchema = z.object({
   userId: z.number(),

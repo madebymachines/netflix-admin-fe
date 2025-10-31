@@ -95,7 +95,7 @@ export function ExportFeature({ exportType }: ExportFeatureProps) {
       purchaseStatus: "ALL",
       country: "ALL",
       dateRange: undefined,
-      timespan: "alltime",
+      timespan: "monthly",
       limit: 100,
       status: "ALL",
       verificationType: "ALL",
@@ -226,10 +226,8 @@ export function ExportFeature({ exportType }: ExportFeatureProps) {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="alltime">All-Time</SelectItem>
                       <SelectItem value="monthly">Monthly</SelectItem>
                       <SelectItem value="weekly">Weekly</SelectItem>
-                      <SelectItem value="streak">Top Streak</SelectItem>
                     </SelectContent>
                   </Select>
                 </FormItem>
