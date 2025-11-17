@@ -133,8 +133,13 @@ export const sidebarItems: NavGroup[] = [
     items: [
       {
         title: "Weekly Winners",
-        url: "/dashboard/reports/weekly-winners",
+url: "/dashboard/reports/weekly-winners",
         icon: Award,
+      },
+      {
+        title: "Monthly Winners",
+        url: "/dashboard/reports/monthly-winners",
+        icon: Trophy,
       },
     ],
   },

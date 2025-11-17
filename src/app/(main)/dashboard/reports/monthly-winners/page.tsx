@@ -7,14 +7,14 @@ import { DataTablePagination } from "@/components/data-table/data-table-paginati
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDataTableInstance } from "@/hooks/use-data-table-instance";
-import { getWeeklyReportHistory } from "@/services/reports.api";
+import { getMonthlyReportHistory } from "@/services/reports.api";
 
 import { columns } from "./columns";
 
-export default function WeeklyReportsPage() {
+export default function MonthlyReportsPage() {
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["weeklyReportHistory"],
-    queryFn: getWeeklyReportHistory,
+    queryKey: ["monthlyReportHistory"],
+    queryFn: getMonthlyReportHistory,
   });
 
   const tableData = data ?? [];
@@ -27,9 +27,9 @@ export default function WeeklyReportsPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Weekly Winner Reports</CardTitle>
+        <CardTitle>Monthly Winner Reports</CardTitle>
         <CardDescription>
-          History of all automated weekly winner reports that have been generated and sent to clients.
+          History of all automated monthly winner reports that have been generated and sent to clients.
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">

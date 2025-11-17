@@ -10,6 +10,7 @@ export const leaderboardEntrySchema = z.object({
   country: z.string().nullable(),
   points: z.number().optional(), // alltime, weekly, monthly
   streak: z.number().optional(), // streak
+  isNotified: z.boolean().optional(), // Ditambahkan
 });
 
 export type LeaderboardEntry = z.infer<typeof leaderboardEntrySchema>;
