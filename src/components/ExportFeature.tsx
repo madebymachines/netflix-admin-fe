@@ -39,6 +39,21 @@ interface ExportFeatureProps {
   customTitle?: string;
 }
 
+// Define explicit type for form values to fix inference issues
+type ExportFormValues = {
+  email: string;
+  isBanned?: string;
+  purchaseStatus?: string;
+  country?: string;
+  dateRange?: DateRange;
+  timespan?: string;
+  limit?: number;
+  status?: string;
+  verificationType?: string;
+  eventType?: string;
+  periodId?: string;
+};
+
 const baseFilters = {
   email: z.string().email({ message: "Invalid email address." }).optional().or(z.literal("")),
 };
@@ -53,7 +68,6 @@ const participantsFilters = z.object({
 const leaderboardFilters = z.object({
   timespan: z.string().optional(),
   country: z.string().optional(),
-  // limit dihapus dari sini karena kita akan export semua data
   dateRange: z.custom<DateRange>().optional(),
   periodId: z.string().optional(),
 });
@@ -113,7 +127,8 @@ export function ExportFeature({ exportType, customTitle }: ExportFeatureProps) {
     }
   };
 
-  const form = useForm({
+  // Use explicit generic type ExportFormValues
+  const form = useForm<ExportFormValues>({
     resolver: zodResolver(z.object({ ...baseFilters, ...getFilterSchema().shape })),
     defaultValues: {
       email: "",
@@ -123,7 +138,7 @@ export function ExportFeature({ exportType, customTitle }: ExportFeatureProps) {
       dateRange: undefined,
       timespan: "weekly",
       periodId: "",
-      // limit dihapus dari defaultValues
+      limit: 100,
       status: "ALL",
       verificationType: "ALL",
       eventType: "ALL",
@@ -157,7 +172,7 @@ export function ExportFeature({ exportType, customTitle }: ExportFeatureProps) {
     }
   };
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: ExportFormValues) => {
     const { periodId, ...restData } = data;
 
     const cleanFilters = Object.entries(restData).reduce((acc, [key, value]) => {
@@ -357,8 +372,6 @@ export function ExportFeature({ exportType, customTitle }: ExportFeatureProps) {
                 </FormItem>
               )}
             />
-
-            {/* Input Limit dihapus dari sini */}
           </>
         );
       case "VERIFICATIONS":
@@ -516,7 +529,7 @@ export function ExportFeature({ exportType, customTitle }: ExportFeatureProps) {
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Export {getTitle()}</DialogTitle>
+          <DialogTitle>{getTitle()}</DialogTitle>
           <DialogDescription>
             Select filters for your export. The file will be generated in the background.
           </DialogDescription>
