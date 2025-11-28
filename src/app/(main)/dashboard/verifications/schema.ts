@@ -6,6 +6,8 @@ export const verificationSchema = z.object({
   type: z.enum(["MEMBER_GYM", "RECEIPT"]),
   receiptImageUrl: z.string().url(),
   submittedAt: z.string().datetime(),
+  // Ditambahkan: rejectionReason
+  rejectionReason: z.string().nullable().optional(),
   user: z.object({
     id: z.number(),
     username: z.string(),

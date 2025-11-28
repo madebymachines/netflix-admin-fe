@@ -21,13 +21,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -144,7 +138,14 @@ export default function VerificationsPage() {
     setRejectionReason("");
   }
 
-  const columns = useMemo(() => getColumns({ onApprove, onReject, onViewImage, onViewDetails }), []);
+  // --- PERBAIKAN DIMULAI DI SINI ---
+  // Pass statusFilter ke getColumns agar kolom alasan rejected bisa muncul/disembunyikan
+  const columns = useMemo(
+    () => getColumns({ onApprove, onReject, onViewImage, onViewDetails, statusFilter }),
+    [statusFilter],
+  );
+  // --- PERBAIKAN SELESAI ---
+
   const table = useDataTableInstance({
     data: tableData,
     columns,

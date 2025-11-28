@@ -11,6 +11,7 @@ export const leaderboardEntrySchema = z.object({
   points: z.number().optional(), // alltime, weekly, monthly
   streak: z.number().optional(), // streak
   isNotified: z.boolean().optional(), // Ditambahkan
+  challengeCount: z.number().optional(), // Ditambahkan
 });
 
 export type LeaderboardEntry = z.infer<typeof leaderboardEntrySchema>;

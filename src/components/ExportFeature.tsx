@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
 import { Download } from "lucide-react";
 import { DateRange } from "react-day-picker";
+import { useQuery } from "@tanstack/react-query";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -24,11 +25,18 @@ import { Input } from "@/components/ui/input";
 import { requestExport } from "@/services/api";
 import { DateRangePicker } from "./ui/date-range-picker";
 import { countries } from "@/data/countries";
+import {
+  getWeeklyReportSchedules,
+  getMonthlyReportSchedules,
+  WeeklyReportSchedule,
+  MonthlyReportSchedule,
+} from "@/services/reports.api";
 
 type ExportType = "PARTICIPANTS" | "LEADERBOARD" | "VERIFICATIONS" | "SUBMISSIONS";
 
 interface ExportFeatureProps {
   exportType: ExportType;
+  customTitle?: string;
 }
 
 const baseFilters = {
@@ -45,7 +53,9 @@ const participantsFilters = z.object({
 const leaderboardFilters = z.object({
   timespan: z.string().optional(),
   country: z.string().optional(),
-  limit: z.coerce.number().int().positive().optional(),
+  // limit dihapus dari sini karena kita akan export semua data
+  dateRange: z.custom<DateRange>().optional(),
+  periodId: z.string().optional(),
 });
 
 const verificationFilters = z.object({
@@ -61,16 +71,32 @@ const submissionFilters = z.object({
   dateRange: z.custom<DateRange>().optional(),
 });
 
-export function ExportFeature({ exportType }: ExportFeatureProps) {
+export function ExportFeature({ exportType, customTitle }: ExportFeatureProps) {
   const [open, setOpen] = useState(false);
 
-  const getTitle = () =>
-    ({
+  const { data: weeklySchedules } = useQuery<WeeklyReportSchedule[]>({
+    queryKey: ["weeklyReportSchedules"],
+    queryFn: getWeeklyReportSchedules,
+    enabled: open && exportType === "LEADERBOARD",
+    staleTime: Infinity,
+  });
+
+  const { data: monthlySchedules } = useQuery<MonthlyReportSchedule[]>({
+    queryKey: ["monthlyReportSchedules"],
+    queryFn: getMonthlyReportSchedules,
+    enabled: open && exportType === "LEADERBOARD",
+    staleTime: Infinity,
+  });
+
+  const getTitle = () => {
+    if (customTitle) return customTitle;
+    return {
       PARTICIPANTS: "Participants",
       LEADERBOARD: "Leaderboard",
       VERIFICATIONS: "Verifications",
       SUBMISSIONS: "Submissions",
-    })[exportType];
+    }[exportType];
+  };
 
   const getFilterSchema = () => {
     switch (exportType) {
@@ -95,22 +121,60 @@ export function ExportFeature({ exportType }: ExportFeatureProps) {
       purchaseStatus: "ALL",
       country: "ALL",
       dateRange: undefined,
-      timespan: "monthly",
-      limit: 100,
+      timespan: "weekly",
+      periodId: "",
+      // limit dihapus dari defaultValues
       status: "ALL",
       verificationType: "ALL",
       eventType: "ALL",
     },
   });
 
+  const selectedTimespan = form.watch("timespan");
+
+  useEffect(() => {
+    if (exportType === "LEADERBOARD") {
+      form.setValue("periodId", "");
+      form.setValue("dateRange", undefined);
+    }
+  }, [selectedTimespan, exportType, form]);
+
+  const handlePeriodChange = (periodId: string) => {
+    form.setValue("periodId", periodId);
+
+    let selectedSchedule;
+    if (selectedTimespan === "weekly") {
+      selectedSchedule = weeklySchedules?.find((s) => String(s.periodId) === periodId);
+    } else {
+      selectedSchedule = monthlySchedules?.find((s) => String(s.periodId) === periodId);
+    }
+
+    if (selectedSchedule) {
+      form.setValue("dateRange", {
+        from: new Date(selectedSchedule.start),
+        to: new Date(selectedSchedule.end),
+      });
+    }
+  };
+
   const onSubmit = async (data: any) => {
-    // Bersihkan filter yang tidak relevan atau 'ALL'
-    const cleanFilters = Object.entries(data).reduce((acc, [key, value]) => {
+    const { periodId, ...restData } = data;
+
+    const cleanFilters = Object.entries(restData).reduce((acc, [key, value]) => {
       if (value && value !== "ALL") {
         acc[key] = value;
       }
       return acc;
     }, {} as any);
+
+    if (
+      exportType === "LEADERBOARD" &&
+      !data.dateRange &&
+      (data.timespan === "weekly" || data.timespan === "monthly")
+    ) {
+      toast.error("Please select a specific period (Week/Month).");
+      return;
+    }
 
     try {
       await requestExport(exportType, cleanFilters);
@@ -213,26 +277,62 @@ export function ExportFeature({ exportType }: ExportFeatureProps) {
       case "LEADERBOARD":
         return (
           <>
-            <FormField
-              control={form.control}
-              name="timespan"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Timespan</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select timespan" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="monthly">Monthly</SelectItem>
-                      <SelectItem value="weekly">Weekly</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </FormItem>
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="timespan"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Timespan</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select timespan" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="weekly">Weekly</SelectItem>
+                        <SelectItem value="monthly">Monthly</SelectItem>
+                        <SelectItem value="streak">Streak (All Time)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormItem>
+                )}
+              />
+
+              {(selectedTimespan === "weekly" || selectedTimespan === "monthly") && (
+                <FormField
+                  control={form.control}
+                  name="periodId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Select Period</FormLabel>
+                      <Select onValueChange={handlePeriodChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder={selectedTimespan === "weekly" ? "Select Week" : "Select Month"} />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {selectedTimespan === "weekly"
+                            ? weeklySchedules?.map((s) => (
+                                <SelectItem key={s.periodId} value={String(s.periodId)}>
+                                  {s.label}
+                                </SelectItem>
+                              ))
+                            : monthlySchedules?.map((s) => (
+                                <SelectItem key={s.periodId} value={String(s.periodId)}>
+                                  {s.label}
+                                </SelectItem>
+                              ))}
+                        </SelectContent>
+                      </Select>
+                    </FormItem>
+                  )}
+                />
               )}
-            />
+            </div>
+
             <FormField
               control={form.control}
               name="country"
@@ -257,18 +357,8 @@ export function ExportFeature({ exportType }: ExportFeatureProps) {
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="limit"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Top N Participants</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="e.g., 100" {...field} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
+
+            {/* Input Limit dihapus dari sini */}
           </>
         );
       case "VERIFICATIONS":

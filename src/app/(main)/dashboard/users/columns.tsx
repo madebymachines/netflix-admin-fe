@@ -60,6 +60,12 @@ export const getColumns = ({ onBan, onUnban, onViewDetails }: ColumnsProps): Col
     ),
   },
   {
+    id: "totalChallenges",
+    accessorFn: (row) => row.stats?.totalChallenges ?? 0,
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Total Challenges" />,
+    cell: ({ row }) => <div className="text-center font-medium">{row.original.stats?.totalChallenges ?? 0}</div>,
+  },
+  {
     accessorKey: "createdAt",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Registered At" />,
     cell: ({ row }) => <span>{format(new Date(row.original.createdAt), "dd MMM yyyy")}</span>,

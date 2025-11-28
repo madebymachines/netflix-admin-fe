@@ -1,13 +1,15 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Users, BarChart3 } from "lucide-react";
+import { BarChart3 } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import api from "@/lib/axios";
 import { UserGrowthChart } from "./user-growth-chart";
+import { ActivityGrowthChart } from "./activity-growth-chart"; // Dikembalikan
+import { UserActivityStats } from "./_components/user-activity-stats"; // Tabel Baru
 
 // API Fetcher
 const fetchStats = async (): Promise<{
@@ -117,9 +119,15 @@ export default function OverviewPage() {
         </div>
       </div>
 
-      {/* Bottom section with user growth chart */}
-      <div>
+      {/* Charts Section: User Growth & Activity Growth Side-by-Side */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <UserGrowthChart />
+        <ActivityGrowthChart />
+      </div>
+
+      {/* New User Activity Stats Table (Full Width) */}
+      <div className="w-full">
+        <UserActivityStats />
       </div>
     </div>
   );

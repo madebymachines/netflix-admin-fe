@@ -8,6 +8,13 @@ export const userSchema = z.object({
   purchaseStatus: z.enum(["NOT_VERIFIED", "PENDING", "APPROVED", "REJECTED"]),
   isBanned: z.boolean(),
   createdAt: z.string().datetime(),
+  // Menambahkan stats.totalChallenges (nullable karena bisa jadi userStats belum ada)
+  stats: z
+    .object({
+      totalChallenges: z.number(),
+    })
+    .nullable()
+    .optional(),
 });
 
 export type User = z.infer<typeof userSchema>;

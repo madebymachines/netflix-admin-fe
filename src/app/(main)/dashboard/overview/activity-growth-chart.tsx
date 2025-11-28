@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Legend, LabelList } from "recharts";
+import { Bar, CartesianGrid, XAxis, YAxis, Legend, LabelList, ComposedChart, Line } from "recharts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import api from "@/lib/axios";
@@ -10,10 +10,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const chartConfig = {
-  NOT_VERIFIED: {
-    label: "Not Verified",
-    color: "#000000", // Set to distinct Black
-  },
   PENDING: {
     label: "Pending",
     color: "#EAB308", // Yellow-500
@@ -26,32 +22,36 @@ const chartConfig = {
     label: "Rejected",
     color: "#EF4444", // Red-500
   },
+  average: {
+    label: "Avg per User",
+    color: "#3B82F6", // Blue-500
+  },
 } satisfies ChartConfig;
 
 // API Fetcher
-const fetchUserGrowth = async (
+const fetchActivityGrowth = async (
   type: "daily" | "weekly" | "monthly",
 ): Promise<{
   data: {
     label?: string;
     date: string;
-    NOT_VERIFIED: number;
     PENDING: number;
     APPROVED: number;
     REJECTED: number;
-    total: number; // Pastikan total ada di tipe
+    total: number;
+    average: number;
   }[];
 }> => {
-  const response = await api.get(`/admin/stats/user-growth?type=${type}&days=30`);
+  const response = await api.get(`/admin/stats/activity-growth?type=${type}&days=30`);
   return response.data;
 };
 
-export function UserGrowthChart() {
+export function ActivityGrowthChart() {
   const [periodType, setPeriodType] = useState<"daily" | "weekly" | "monthly">("daily");
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["userGrowth", periodType],
-    queryFn: () => fetchUserGrowth(periodType),
+    queryKey: ["activityGrowth", periodType],
+    queryFn: () => fetchActivityGrowth(periodType),
   });
 
   const chartData = data?.data ?? [];
@@ -61,13 +61,13 @@ export function UserGrowthChart() {
       <CardHeader>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <CardTitle>User Registrations</CardTitle>
+            <CardTitle>Activity Challenges</CardTitle>
             <CardDescription>
               {periodType === "daily"
-                ? "Daily new users by verification status (Last 30 Days)."
+                ? "Daily challenges by status & average per user (Last 30 Days)."
                 : periodType === "weekly"
-                  ? "Total users per campaign week by status."
-                  : "Total users per campaign month by status."}
+                  ? "Total challenges per campaign week."
+                  : "Total challenges per campaign month."}
             </CardDescription>
           </div>
           <Select value={periodType} onValueChange={(val: any) => setPeriodType(val)}>
@@ -89,7 +89,7 @@ export function UserGrowthChart() {
           <p className="text-destructive">Failed to load chart data.</p>
         ) : (
           <ChartContainer config={chartConfig} className="h-[350px] w-full">
-            <BarChart
+            <ComposedChart
               accessibilityLayer
               data={chartData}
               margin={{
@@ -109,11 +109,14 @@ export function UserGrowthChart() {
                   if (periodType === "daily") {
                     return new Date(value).toLocaleDateString("en-US", { month: "short", day: "numeric" });
                   }
-                  // For Weekly/Monthly, use the label directly (e.g., "Week 1", "Month 1")
                   return value;
                 }}
               />
-              <YAxis allowDecimals={false} />
+              {/* Left Axis for Counts */}
+              <YAxis yAxisId="left" allowDecimals={false} />
+              {/* Right Axis for Average */}
+              <YAxis yAxisId="right" orientation="right" allowDecimals={true} tickFormatter={(val) => val.toFixed(1)} />
+
               <ChartTooltip
                 cursor={false}
                 content={
@@ -134,24 +137,25 @@ export function UserGrowthChart() {
                 }
               />
               <Legend verticalAlign="top" height={36} iconType="circle" />
-              {/* Stacked Bars for each status */}
+
+              {/* Stacked Bars */}
               <Bar
+                yAxisId="left"
                 dataKey="APPROVED"
                 stackId="a"
                 fill="var(--color-APPROVED)"
-                radius={[0, 0, 4, 4]} // Radius di bawah
+                radius={[0, 0, 4, 4]}
                 name="Approved"
               />
-              <Bar dataKey="PENDING" stackId="a" fill="var(--color-PENDING)" name="Pending" />
-              <Bar dataKey="REJECTED" stackId="a" fill="var(--color-REJECTED)" name="Rejected" />
+              <Bar yAxisId="left" dataKey="PENDING" stackId="a" fill="var(--color-PENDING)" name="Pending" />
               <Bar
-                dataKey="NOT_VERIFIED"
+                yAxisId="left"
+                dataKey="REJECTED"
                 stackId="a"
-                fill="var(--color-NOT_VERIFIED)"
-                radius={[4, 4, 0, 0]} // Radius di atas
-                name="Not Verified"
+                fill="var(--color-REJECTED)"
+                radius={[4, 4, 0, 0]}
+                name="Rejected"
               >
-                {/* Tampilkan Total di atas Bar paling atas (NOT_VERIFIED) */}
                 <LabelList
                   dataKey="total"
                   position="top"
@@ -160,7 +164,18 @@ export function UserGrowthChart() {
                   fontSize={12}
                 />
               </Bar>
-            </BarChart>
+
+              {/* Line for Average */}
+              <Line
+                yAxisId="right"
+                type="monotone"
+                dataKey="average"
+                stroke="var(--color-average)"
+                strokeWidth={2}
+                dot={{ fill: "var(--color-average)" }}
+                name="Avg per User"
+              />
+            </ComposedChart>
           </ChartContainer>
         )}
       </CardContent>
